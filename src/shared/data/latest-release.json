@@ -1,5 +1,9 @@
 [
   {
+    "version": "v0.80.0",
+    "codename": "One Coherent Workbench"
+  },
+  {
     "version": "v0.79.17",
     "codename": "A Background That Breathes"
   },
@@ -14,9 +18,5 @@
   {
     "version": "v0.79.14",
     "codename": "Room to Breathe, Room to Grow"
-  },
-  {
-    "version": "v0.79.13",
-    "codename": "The Padding That Wasn't There"
   }
 ]

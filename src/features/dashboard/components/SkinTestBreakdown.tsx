@@ -61,7 +61,7 @@ const SkinTestBreakdown: React.FC<SkinTestBreakdownProps> = ({
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-[760px] md:min-w-full text-sm relative border-collapse">
           <thead className="bg-card text-xs uppercase text-muted-foreground font-semibold">
-            <tr>
+            <tr className="border-b border-border">
               <th scope="col" className="px-4 py-3 text-left bg-card w-1/3">Drug</th>
               <th scope="col" className="px-4 py-3 text-center bg-card">SPT</th>
               <th scope="col" className="px-4 py-3 text-center bg-card">IDT 1:100</th>
@@ -97,7 +97,7 @@ const SkinTestBreakdown: React.FC<SkinTestBreakdownProps> = ({
                       </td>
                       <td className="px-4 py-2.5 text-center border-l border-border">
                         {totalCategoryPositives > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-none text-xs font-medium bg-muted dark:bg-card text-foreground dark:text-primary">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-none text-xs font-medium bg-muted dark:bg-card text-foreground dark:text-primary border border-border/50">
                             <span className="tabular-nums">{totalCategoryPositives}</span>
                           </span>
                         ) : (

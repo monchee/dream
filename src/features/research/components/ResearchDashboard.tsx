@@ -71,13 +71,13 @@ function SubmissionDetail({ record, onDelete }: { record: ResearchRecord; onDele
               </thead>
               <tbody className="divide-y divide-border">
                 {record.test_panel.map((d, i) => (
-                  <tr key={i} className={d.is_positive ? 'bg-destructive/10' : 'hover:bg-muted/30 transition-colors'}>
+                  <tr key={i} className={d.is_positive ? 'bg-status-danger/10' : 'hover:bg-muted/30 transition-colors'}>
                     <td className="px-3 py-1.5 font-medium text-foreground">{d.drug_name}</td>
-                    <td className="px-3 py-1.5 text-muted-foreground font-mono">{d.spt_wheal || '—'}</td>
-                    <td className="px-3 py-1.5 text-muted-foreground font-mono">{d.idt_results || '—'}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground font-mono tabular-nums">{d.spt_wheal || '—'}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground font-mono tabular-nums">{d.idt_results || '—'}</td>
                     <td className="px-3 py-1.5">
                       {d.is_positive ? (
-                        <span className="text-destructive font-semibold">Positive</span>
+                        <span className="text-status-danger font-semibold">Positive</span>
                       ) : (
                         <span className="text-muted-foreground">Negative</span>
                       )}
@@ -482,7 +482,7 @@ export default function ResearchDashboard({ setScreen }: { setScreen?: (screen: 
                         type="button"
                         onClick={() => setExpandedId(isExpanded ? null : r.id)}
                         aria-expanded={isExpanded}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                        className="w-full min-h-[44px] flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                       >
                         <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-0.5 text-xs">
                           <div>

@@ -222,7 +222,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 <Input
                   placeholder="Search by Name, REDCap ID..."
                   aria-label="Search patients by name, REDCap ID, or city"
-                  className="pl-9 h-9 bg-muted"
+                  className="pl-9 min-h-[44px] sm:min-h-9 bg-muted"
                   value={filters.textQuery}
                   onChange={(e) => updateFilter('textQuery', e.target.value)}
                 />
@@ -243,7 +243,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
                       variant={isSelected ? 'default' : 'outline'}
                       aria-pressed={isSelected}
                       onClick={() => selectQuickFilter(value)}
-                      className="h-8 rounded-none px-3 text-xs btn-press"
+                      className="min-h-[44px] sm:min-h-8 rounded-none px-3 text-xs btn-press"
                     >
                       {isSelected ? <Check className="mr-1 h-3.5 w-3.5" aria-hidden="true" /> : null}
                       {label}
@@ -271,7 +271,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
       <div className="hidden md:block overflow-x-auto">
         <table aria-label="Patient database" className="w-full text-sm text-left">
           <thead className="bg-card text-xs uppercase text-muted-foreground font-semibold">
-            <tr>
+            <tr className="border-b border-border">
               <th scope="col" className="px-4 py-3 w-28">Date</th>
               <th scope="col" className="px-4 py-3 w-40 md:w-44 lg:w-48">Patient</th>
               <th scope="col" className="px-4 py-3 min-w-[140px]">Procedure</th>

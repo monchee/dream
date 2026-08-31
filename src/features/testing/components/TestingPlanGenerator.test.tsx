@@ -295,7 +295,7 @@ describe('TestingPlanGenerator', () => {
     expect(screen.queryByTestId('protocol-dose-table-Ketamine')).not.toBeInTheDocument();
 
     // Verify dropdown shows review required indicator
-    expect(screen.getByText('⚠ Review required')).toBeInTheDocument();
+    expect(screen.getByText('Review required')).toBeInTheDocument();
 
     // Verify persistent alert near Preview & Print button is visible
     const buttonAlert = screen.getByTestId('protocol-selection-review-alert');

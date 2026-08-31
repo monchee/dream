@@ -46,4 +46,11 @@ describe('DrugTestGrid', () => {
 
     expect(screen.getByText('+POS')).toHaveClass('pointer-events-none');
   });
+
+  it('gives each clinical measurement field an explicit accessible name', () => {
+    renderGrid('');
+
+    expect(screen.getByLabelText('Rocuronium SPT wheal measurement in millimetres')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rocuronium IDT 1:100 wheal measurement in millimetres')).toBeInTheDocument();
+  });
 });

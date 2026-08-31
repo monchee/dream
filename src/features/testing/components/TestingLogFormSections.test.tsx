@@ -41,6 +41,8 @@ describe('NurseNotesSection', () => {
     expect(screen.getByText('Nursing Notes')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Pre-Testing Observations/i)).not.toBeInTheDocument();
 
+    expect(screen.getByRole('button', { name: /Nursing Notes/i })).toHaveAttribute('aria-expanded', 'false');
+
     fireEvent.click(screen.getByRole('button', { name: /Nursing Notes/i }));
     expect(setIsOpen).toHaveBeenCalled();
 
@@ -54,6 +56,7 @@ describe('NurseNotesSection', () => {
     );
 
     expect(screen.getByLabelText(/Pre-Testing Observations/i)).toHaveValue('Pre notes');
+    expect(screen.getByRole('button', { name: /Nursing Notes/i })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByLabelText(/During Testing/i)).toHaveValue('During notes');
     expect(screen.getByLabelText(/Post-Testing \/ Discharge/i)).toHaveValue('Post notes');
     expect(screen.getByLabelText(/Signed by \(RN\)/i)).toHaveValue('RN Tester');

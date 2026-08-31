@@ -15,6 +15,7 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
   const [searchTerm, setSearchTerm] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Memoize sorted patients to avoid recalculating on every render
   // Handle non-numeric IDs gracefully
@@ -49,6 +50,7 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        triggerRef.current?.focus();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -106,6 +108,7 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
     } else if (event.key === 'Escape') {
       event.preventDefault();
       setIsOpen(false);
+      triggerRef.current?.focus();
     }
   };
 
@@ -118,10 +121,12 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
       <div className="relative">
         <button
           type="button"
+          ref={triggerRef}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
+          aria-controls="patient-selector-listbox"
           aria-labelledby="patient-selector-label"
-          className="flex min-h-10 h-auto w-full items-center justify-between rounded-none border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[color,background-color,border-color,box-shadow]"
+          className="flex min-h-[44px] xl:min-h-10 h-auto w-full items-center justify-between rounded-none border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-[color,background-color,border-color,box-shadow]"
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={(event) => {
             if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
@@ -157,6 +162,7 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
                         type="text"
                         aria-label="Filter patients by ID or name"
                         aria-controls="patient-selector-listbox"
+                        aria-autocomplete="list"
                         aria-activedescendant={activeOptionId}
                         className="w-full rounded-none border border-input bg-muted py-1.5 pl-8 pr-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
                         placeholder="Filter by ID or Name..."
@@ -173,7 +179,7 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
                 id="patient-option-manual"
                 role="option"
                 aria-selected={isManualSelection}
-                className={`cursor-pointer select-none py-2 px-3 border-b border-border hover:bg-muted flex items-center gap-3 text-sm text-foreground/80 transition-colors ${activeIndex === 0 ? 'bg-muted' : ''}`}
+                className={`min-h-[44px] cursor-pointer select-none py-2 px-3 border-b border-border hover:bg-muted flex items-center gap-3 text-sm text-foreground/80 transition-colors ${activeIndex === 0 ? 'bg-muted' : ''}`}
                 onClick={handleManualEntry}
             >
                 <div className="bg-muted p-1.5 rounded-none text-muted-foreground">
@@ -199,7 +205,7 @@ const PatientSelector: React.FC<PatientSelectorProps> = ({ onSelectPatient, sele
                     key={patient.id}
                     role="option"
                     aria-selected={selectedPatientId === patient.id}
-                    className={`relative cursor-default select-none py-2 pl-3 pr-9 hover:bg-muted border-b border-border/50 transition-colors last:border-0 ${
+                    className={`relative min-h-[44px] cursor-default select-none py-2 pl-3 pr-9 hover:bg-muted border-b border-border/50 transition-colors last:border-0 ${
                         selectedPatientId === patient.id || activeIndex === index + 1 ? "bg-muted/60 font-medium" : ""
                     }`}
                     onClick={() => handleSelect(patient)}

@@ -73,7 +73,7 @@ export function ClinicalContextBar({
               type="button"
               aria-label="View patient details"
               className={cn(
-                'inline-flex items-center justify-center gap-1 px-2.5 py-1 min-h-[28px] text-xs font-semibold rounded-none shrink-0',
+                'inline-flex items-center justify-center gap-1 px-2.5 py-1 min-h-[44px] min-w-[44px] text-xs font-semibold rounded-none shrink-0',
                 'border border-border bg-background hover:bg-muted text-foreground transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background'
               )}

@@ -12,7 +12,7 @@ A private clinical Progressive Web App for the Royal Prince Alfred Hospital Depa
 
 ## Project Status
 
-- **Current version:** v0.78.6
+- **Current version:** v0.80.0
 - **Live app:** [dream.yuson.au](https://dream.yuson.au)
 - **Repository:** private/internal clinical tooling
 - **Production host:** Cloudflare Pages

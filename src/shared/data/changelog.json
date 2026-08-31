@@ -1,5 +1,21 @@
 [
   {
+    "version": "v0.80.0",
+    "codename": "One Coherent Workbench",
+    "date": "31 August 2026",
+    "summary": "A whole-project incumbent-system polish pass across the clinical workbench. Strengthens touch and keyboard access at sub-desktop sizes, makes clinical measurement and collapsible controls explicit to assistive technology, removes a surname from the active-report banner, and keeps reduced-motion scrolling calm. Clinical copy, protocol values and order, storage, research payloads, PIN semantics, outbound confirmation, and infrastructure are unchanged.",
+    "highlight": false,
+    "changes": [
+      "Shared touch targets now follow the workbench breakpoint. Shared buttons are at least 44px high below `xl`, while the persistent desktop rail keeps its compact clinical density. Patient selection, worklist controls, report tabs, redaction, research rows, context details, and other below-desktop actions inherit the same touch-safe floor.",
+      "Clinical controls expose their state and purpose. The testing-plan builder is keyboard-toggleable with expanded-content relationships, Nursing Notes exposes expanded state, patient selection returns focus to its trigger and identifies its listbox relationship, and every skin-test wheal field has an explicit measurement name.",
+      "The active-report banner is privacy safer. It now shows first and last initials rather than the patient's surname. Wrong-patient and outbound confirmation dialogs remain explicit and identified so a clinician can verify the bound record before acting.",
+      "Reduced motion includes anchor navigation. `prefers-reduced-motion: reduce` now disables the global smooth-scroll behavior as well as the existing authored animations.",
+      "Warning presentation stays within the icon system. The testing-plan protocol review indicator uses the existing Lucide warning icon and the same readable \u201cReview required\u201d copy instead of a standalone glyph.",
+      "The existing PatientTable, SkinTestBreakdown, PatientHistory, and ResearchDashboard work remains integrated. Their tracked changes were preserved and tested alongside this pass.",
+      "Clinical meaning and persistence contracts were not altered. No protocol values or ordering, schemas, identifiers, storage keys, research payload fields, PIN behavior, outbound privacy checks, dependencies, backend, migrations, generated media, or infrastructure changed."
+    ]
+  },
+  {
     "version": "v0.79.17",
     "codename": "A Background That Breathes",
     "date": "20 August 2026",

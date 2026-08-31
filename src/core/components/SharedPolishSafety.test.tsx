@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import DisclaimerBanner from './DisclaimerBanner';
 import { ScreenLayout } from './ScreenLayout';
@@ -8,6 +9,14 @@ import { Screen } from '@shared/types';
 import { renderWithProviders } from '../../test/helpers/renderWithProviders';
 
 describe('Shared polish safety and semantic token regression tests', () => {
+  describe('Shared touch-target baseline', () => {
+    it('keeps shared buttons touch-friendly below the desktop rail breakpoint', () => {
+      render(<Button>Continue</Button>);
+
+      expect(screen.getByRole('button', { name: 'Continue' })).toHaveClass('min-h-[44px]', 'xl:min-h-0');
+    });
+  });
+
   describe('Badge semantic status variants', () => {
     it('applies semantic status classes for danger and grades 1 through 4', () => {
       const { rerender } = render(<Badge variant="danger">Danger</Badge>);

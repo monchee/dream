@@ -42,7 +42,7 @@ function RedactToggle() {
       <button
         type="button"
         onClick={toggleRedact}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
+        className={`flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
           isRedacted
             ? 'border-status-warning/40 bg-status-warning/10 text-status-warning'
             : 'border-border bg-card text-muted-foreground hover:text-foreground'
@@ -165,7 +165,7 @@ function SummaryScreenContent({
             aria-selected={activeReportTab === key}
             aria-controls={`report-panel-${key}`}
             onClick={() => setActiveReportTab(key)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 transition-colors rounded-none whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1
+            className={`flex min-h-[44px] items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 transition-colors rounded-none whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1
               ${activeReportTab === key
                 ? 'border-primary text-primary font-semibold'
                 : 'border-transparent text-muted-foreground hover:text-foreground'

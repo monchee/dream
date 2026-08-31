@@ -1,3 +1,18 @@
+## [0.80.0] — 2026-08-31 (One Coherent Workbench)
+
+Summary: A whole-project incumbent-system polish pass across the clinical workbench. Strengthens touch and keyboard access at sub-desktop sizes, makes clinical measurement and collapsible controls explicit to assistive technology, removes a surname from the active-report banner, and keeps reduced-motion scrolling calm. Clinical copy, protocol values and order, storage, research payloads, PIN semantics, outbound confirmation, and infrastructure are unchanged.
+
+### Changed
+- **Shared touch targets now follow the workbench breakpoint.** Shared buttons are at least 44px high below `xl`, while the persistent desktop rail keeps its compact clinical density. Patient selection, worklist controls, report tabs, redaction, research rows, context details, and other below-desktop actions inherit the same touch-safe floor.
+- **Clinical controls expose their state and purpose.** The testing-plan builder is keyboard-toggleable with expanded-content relationships, Nursing Notes exposes expanded state, patient selection returns focus to its trigger and identifies its listbox relationship, and every skin-test wheal field has an explicit measurement name.
+- **The active-report banner is privacy safer.** It now shows first and last initials rather than the patient's surname. Wrong-patient and outbound confirmation dialogs remain explicit and identified so a clinician can verify the bound record before acting.
+- **Reduced motion includes anchor navigation.** `prefers-reduced-motion: reduce` now disables the global smooth-scroll behavior as well as the existing authored animations.
+- **Warning presentation stays within the icon system.** The testing-plan protocol review indicator uses the existing Lucide warning icon and the same readable “Review required” copy instead of a standalone glyph.
+
+### Checked, no change needed
+- **The existing PatientTable, SkinTestBreakdown, PatientHistory, and ResearchDashboard work remains integrated.** Their tracked changes were preserved and tested alongside this pass.
+- **Clinical meaning and persistence contracts were not altered.** No protocol values or ordering, schemas, identifiers, storage keys, research payload fields, PIN behavior, outbound privacy checks, dependencies, backend, migrations, generated media, or infrastructure changed.
+
 ## [0.79.17] — 2026-08-20 (A Background That Breathes)
 
 Summary: A tuning pass on the PIN gate's idle ambient background, requested after it read as barely perceptible in both themes. The ambient light fields only ever animated position — their color intensity was completely static — which is a large part of why they didn't register as "alive" even on a longer look. No component logic, markup, or the earlier state-feedback animations (wrong-PIN pulse, unlock convergence) changed.
