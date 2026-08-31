@@ -31,14 +31,16 @@ const isPositive = (v: string) => (parseInt(v, 10) || 0) >= SKIN_TEST_POSITIVE_T
 interface WhealInputProps {
   value: string;
   onChange: (value: string) => void;
+  'aria-label': string;
 }
 
-const WhealInput = ({ value, onChange }: WhealInputProps) => (
+const WhealInput = ({ value, onChange, 'aria-label': ariaLabel }: WhealInputProps) => (
   <div className="relative">
     <Input
       type="text"
       inputMode="decimal"
       pattern="[0-9]*"
+      aria-label={ariaLabel}
       onKeyDown={preventNegativeInput}
       className={`h-9 text-center font-mono tabular-nums rounded-none ${isPositive(value) ? 'text-status-danger font-bold bg-status-danger/10 border-status-danger/40 dark:bg-status-danger/20 dark:text-status-danger dark:border-status-danger/50' : ''}`}
       placeholder="-"
@@ -123,6 +125,7 @@ const DrugRow = React.memo(({
           </DropdownMenu>
         )}
         <button
+          type="button"
           onClick={() => onRemove(index)}
           className={`shrink-0 text-muted-foreground/60 hover:text-destructive transition-colors p-1 ${row.drugName === 'Other' ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
           title="Remove drug"
@@ -160,6 +163,7 @@ const DrugRow = React.memo(({
                   onChange={(e) => onUpdate(index, `customIdtStep_concentration_${si}`, e.target.value)}
                 />
                 <button
+                  type="button"
                   onClick={() => onRemoveCustomIdtStep(index, si)}
                   className="shrink-0 text-muted-foreground/60 hover:text-destructive transition-colors"
                   title="Remove step"
@@ -169,6 +173,7 @@ const DrugRow = React.memo(({
               </div>
             ))}
             <button
+              type="button"
               onClick={() => onAddCustomIdtStep(index)}
               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
             >
@@ -207,6 +212,7 @@ const DrugRow = React.memo(({
             {row.drugName === 'Other' ? (row.customSptConcentration || '') : (protocol?.sptNeatConcentration ? 'Neat' : '')}
           </div>
           <WhealInput
+            aria-label={`${row.drugName} SPT wheal measurement in millimetres`}
             value={row.sptWheal}
             onChange={(value) => onUpdate(index, 'sptWheal', value)}
           />
@@ -222,6 +228,7 @@ const DrugRow = React.memo(({
                 {step.concentration}
               </div>
               <WhealInput
+                aria-label={`${row.drugName} IDT ${step.ratio} wheal measurement in millimetres`}
                 value={val}
                 onChange={(value) => onUpdate(index, `idt_${si}`, value)}
               />
@@ -235,6 +242,7 @@ const DrugRow = React.memo(({
             <div className="section-label text-center">IDT {si + 1}</div>
             <div className="min-h-[2rem]" />
             <WhealInput
+              aria-label={`${row.drugName} IDT ${si + 1} wheal measurement in millimetres`}
               value={val}
               onChange={(value) => onUpdate(index, `idt_${si}`, value)}
             />

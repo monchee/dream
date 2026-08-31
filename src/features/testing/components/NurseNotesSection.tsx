@@ -14,7 +14,13 @@ export function NurseNotesSection({ nurseNotes, onChange, isOpen, setIsOpen }: N
   return (
     <Card style={{ '--section-index': 5 } as React.CSSProperties} className="animate-section-reveal border-border">
       <CardHeader bordered className="bg-card">
-        <button type="button" className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-none p-0.5" onClick={() => setIsOpen(open => !open)}>
+        <button
+          type="button"
+          className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-none p-0.5"
+          onClick={() => setIsOpen(open => !open)}
+          aria-expanded={isOpen}
+          aria-controls="nursing-notes-content"
+        >
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <div className="bg-primary/10 dark:bg-primary/20 p-1.5 rounded-none">
               <ClipboardList className="w-4 h-4 text-primary" />
@@ -26,7 +32,7 @@ export function NurseNotesSection({ nurseNotes, onChange, isOpen, setIsOpen }: N
         </button>
       </CardHeader>
       {isOpen && (
-        <CardContent className="space-y-4">
+        <CardContent id="nursing-notes-content" className="space-y-4">
           {([
             ['preTesting', 'nurse-pre', 'Pre-Testing Observations', 'e.g. consent obtained, vitals stable, IV access established...'],
             ['duringTesting', 'nurse-during', 'During Testing', 'e.g. patient tolerated well, no adverse events observed...'],

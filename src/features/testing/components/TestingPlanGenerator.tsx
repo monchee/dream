@@ -3,7 +3,7 @@ import { Card, CardContent, Button, Label, Switch, Checkbox, Input, Textarea, Se
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Patient, TestingPlanData, CustomDrugEntry, DocumentsToChase } from '@shared/types';
 import { DrugProtocol } from '@features/testing/types';
-import { Printer, Check, X, ClipboardList, ChevronDown, Plus, History, Pin, Search } from 'lucide-react';
+import { Printer, Check, X, ClipboardList, ChevronDown, Plus, History, Pin, Search, AlertTriangle } from 'lucide-react';
 import { CATEGORY_THEMES, DEFAULT_THEME, DEFAULT_SELECTED_DRUGS } from '@shared/utils/constants';
 import { getSkinProtocolsForDrug } from '@shared/data/drugMasterlist';
 import { resolveSelectedProtocol, type ProtocolResolution } from '@shared/utils/protocolResolver';
@@ -368,9 +368,19 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
   return (
     <>
       <Card elevation="raised" className="bg-card overflow-hidden" data-testid="testing-plan-builder">
-        <div 
-            className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors"
+        <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={isOpen}
+            aria-controls="testing-plan-builder-content"
+            className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             onClick={() => setIsOpen(!isOpen)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setIsOpen(open => !open);
+              }
+            }}
         >
              <div className="flex items-center gap-3">
                 <div className="bg-muted p-1.5 rounded-none text-muted-foreground">
@@ -393,7 +403,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
         </div>
 
         {isOpen && (
-            <CardContent className="p-4 sm:p-6">
+            <CardContent id="testing-plan-builder-content" className="p-4 sm:p-6">
                 <div className="border-t border-border pt-4 space-y-6">
 
                     {/* Request Details: Date of Reaction + Urgent */}
@@ -595,8 +605,8 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                         {drug}
                                       </Label>
                                       {isInvalid && (
-                                        <span className="text-[10px] font-bold text-status-danger">
-                                          ⚠ Review required
+                                        <span className="inline-flex items-center gap-1 text-xs font-bold text-status-danger">
+                                          <AlertTriangle className="h-3 w-3" aria-hidden="true" /> Review required
                                         </span>
                                       )}
                                     </div>

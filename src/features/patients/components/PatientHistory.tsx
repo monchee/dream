@@ -144,9 +144,15 @@ const PatientHistory: React.FC<PatientHistoryProps> = ({ patient, onToggleSuspec
                 {gradeDesc && gradeDesc !== gradeLabel ? (
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Badge variant={getGradeVariant(history.grade)} className="whitespace-nowrap cursor-help">
-                                {gradeLabel}
-                            </Badge>
+                            <button
+                                type="button"
+                                className="rounded-none cursor-help focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                aria-label={`Severity grading: ${gradeLabel}. View grading criteria.`}
+                            >
+                                <Badge variant={getGradeVariant(history.grade)} className="whitespace-nowrap">
+                                    {gradeLabel}
+                                </Badge>
+                            </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-64 text-left p-3" sideOffset={4}>
                             <p className="font-bold mb-1 text-foreground border-b border-border pb-1">{gradeLabel}</p>
@@ -287,10 +293,14 @@ const PatientHistory: React.FC<PatientHistoryProps> = ({ patient, onToggleSuspec
                                         s.detail ? (
                                             <Popover key={i}>
                                                 <PopoverTrigger asChild>
-                                                    <div className="inline-flex items-center gap-1 rounded-none bg-muted border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground cursor-pointer hover:border-primary/50 hover:text-primary transition-colors">
+                                                    <button
+                                                        type="button"
+                                                        className="inline-flex items-center gap-1 rounded-none bg-muted border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground cursor-pointer hover:border-primary/50 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                                        aria-label={`${s.label}. View detail.`}
+                                                    >
                                                         {s.label}
-                                                        <Info className="h-3 w-3 opacity-50 text-primary" />
-                                                    </div>
+                                                        <Info className="h-3 w-3 opacity-50 text-primary" aria-hidden="true" />
+                                                    </button>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-64 text-xs p-3" sideOffset={4}>
                                                     {s.detail}
@@ -526,7 +536,7 @@ const PatientHistory: React.FC<PatientHistoryProps> = ({ patient, onToggleSuspec
                         <span className="font-medium text-muted-foreground">{history.referringDoctorPosition}</span>
                     )}
                     {(history.referringDoctorPosition && (history.providerNumber || history.referringPhone)) && (
-                        <span className="text-border">|</span>
+                        <span className="text-muted-foreground/60" aria-hidden="true">|</span>
                     )}
                     {history.providerNumber && <span className="opacity-80">#{history.providerNumber}</span>}
                     {history.referringPhone && <span className="opacity-80 flex items-center gap-0.5"><Phone className="h-3.5 w-3.5" /> {history.referringPhone}</span>}

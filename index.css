@@ -668,6 +668,10 @@
 
 /* Reduced Motion — disable all animations for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .animate-screen-enter,
   .animate-row-enter,
   .animate-section-reveal,

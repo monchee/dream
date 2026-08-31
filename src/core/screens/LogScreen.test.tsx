@@ -340,6 +340,7 @@ describe('LogScreen active work banners', () => {
     const activeReportText = screen.getByText(/Active report:/i);
     const draftText = screen.getByText(/In-progress testing session/i);
 
+    expect(activeReportText).not.toHaveTextContent('Rivera');
     expect(activeReportText.compareDocumentPosition(draftText)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     );

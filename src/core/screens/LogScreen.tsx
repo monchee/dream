@@ -134,7 +134,7 @@ export function LogScreen({
     : null;
 
   const activeReportInitials = lastSavedRecord
-    ? `${lastSavedRecord.firstName?.[0] ? `${lastSavedRecord.firstName[0]}. ` : ''}${lastSavedRecord.lastName || 'Active patient'}`
+    ? [lastSavedRecord.firstName?.[0], lastSavedRecord.lastName?.[0]].filter(Boolean).map(initial => `${initial}.`).join(' ') || 'Active patient'
     : '';
 
   const handleManualPatientSave = () => {
