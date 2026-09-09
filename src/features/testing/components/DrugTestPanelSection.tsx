@@ -128,7 +128,7 @@ export function DrugTestPanelSection({
                           key={drug}
                           onClick={() => onToggleDrug(drug)}
                           aria-pressed={isSelected}
-                          className={`text-xs px-2.5 py-1.5 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
+                          className={`text-xs px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
                             isSelected
                               ? theme.btnSelected
                               : `bg-card text-muted-foreground border-border hover:bg-muted/50 ${theme.btnHover}`
@@ -143,7 +143,7 @@ export function DrugTestPanelSection({
                     {category === 'Others' && (
                       <button
                         onClick={onAddCustomDrug}
-                        className={`md:w-full text-xs px-2.5 py-1.5 rounded-none border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${theme.btnHover}`}
+                        className={`md:w-full text-xs px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-none border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${theme.btnHover}`}
                       >
                         <Plus className="w-3 h-3 shrink-0" />
                         Other

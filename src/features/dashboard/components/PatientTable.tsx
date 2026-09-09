@@ -222,7 +222,7 @@ const PatientTable: React.FC<PatientTableProps> = ({
                 <Input
                   placeholder="Search by Name, REDCap ID..."
                   aria-label="Search patients by name, REDCap ID, or city"
-                  className="pl-9 min-h-[44px] sm:min-h-9 bg-muted"
+                  className="pl-9 min-h-[44px] sm:min-h-9 bg-muted text-ellipsis"
                   value={filters.textQuery}
                   onChange={(e) => updateFilter('textQuery', e.target.value)}
                 />

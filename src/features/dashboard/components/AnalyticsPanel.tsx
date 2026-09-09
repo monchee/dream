@@ -148,7 +148,7 @@ const AnalyticsPanel: React.FC<StatsPanelProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs tabular-nums mt-4">
             {gradeMeta.map(({ key, label, count, className }) => (
               <div key={key} className={`flex items-center gap-1.5 ${key === 'Ungraded' ? 'col-span-2' : ''}`}>
-                <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-none text-xs font-bold text-white ${className}`}>{key === 'Ungraded' ? '-' : key}</span>
+                <span className={`inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-none text-xs font-bold text-white ${className}`}>{key === 'Ungraded' ? '-' : key}</span>
                 <span className="text-muted-foreground">{label}: <b className="text-foreground">{count}</b> ({Math.round((count / totalPatients) * 100)}%)</span>
               </div>
             ))}
