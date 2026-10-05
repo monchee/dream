@@ -9,6 +9,7 @@ import {
   Loader2,
   LogOut,
   Mail,
+  MonitorCheck,
   Plus,
   Printer,
   User,
@@ -34,6 +35,22 @@ const BACK_BTN = "h-11 min-w-11 px-4 bg-secondary hover:bg-muted text-secondary-
 const BACK_ICON = "w-4 h-4 opacity-90 group-hover:opacity-100 transition-opacity";
 
 export type ReportTab = 'report' | 'handout' | 'letter';
+
+/** Tracks browser connectivity so external actions can disable themselves (R3). */
+function useOnlineStatus(): boolean {
+  const [isOnline, setIsOnline] = React.useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+  React.useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+  return isOnline;
+}
 
 function RedactToggle() {
   const { isRedacted, toggleRedact } = useRedact();
@@ -84,6 +101,7 @@ function SummaryScreenContent({
   const { isRedacted, redact } = useRedact();
   const [activeOutboundAction, setActiveOutboundAction] = useState<OutboundActionType | null>(null);
   const [confirmNewLogOpen, setConfirmNewLogOpen] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const tabLabel = ({ report: 'Clinical Report', handout: 'Patient Handout', letter: 'Powerchart Letter' } as const)[activeReportTab];
   const patientName = `${lastSavedRecord.firstName} ${lastSavedRecord.lastName}`;
@@ -116,8 +134,9 @@ function SummaryScreenContent({
     try {
       const emailPatientName = isRedacted ? redact(patientName) : patientName;
       const subject = `${tabLabel}: ${emailPatientName}${visitDate ? ` - ${visitDate}` : ''}`;
-      // Blank recipient per Phase 4 specification
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(getCopyText())}`;
+      // Recipient matches the destination shown on the action (R3): the draft
+      // must arrive at the mailbox the control names.
+      window.location.href = `mailto:SLHD-RPA-allergynurses@health.nsw.gov.au?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(getCopyText())}`;
     } catch (err) {
       showToast.error('Failed to open email client');
       throw err;
@@ -208,61 +227,119 @@ function SummaryScreenContent({
         />
       )}
 
-      {/* Output Section */}
-      <div className="border border-border bg-card p-4 space-y-3 no-print mt-4 rounded-none">
+      {/* Output Section — risk-graded by data boundary (R3): local first, then external */}
+      <div className="border border-border bg-card p-4 space-y-4 no-print mt-4 rounded-none">
         <h3 className="section-label">Output this document:</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Button
-            onClick={() => setActiveOutboundAction('print')}
-            size="lg"
-            className="py-5 h-auto text-sm rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
-          >
-            <Printer className="w-4 h-4 mr-2" /> Print (Primary)
-          </Button>
-          <Button
-            onClick={() => setActiveOutboundAction('copy')}
-            size="lg"
-            variant="outline"
-            className="py-5 h-auto text-sm rounded-none"
-          >
-            <Copy className="w-4 h-4 mr-2" /> Copy as Text
-          </Button>
+
+        {/* Tier 1 — Local clinical output (stays on this device) */}
+        <div
+          role="group"
+          aria-label="Local output — stays on this device"
+          className="space-y-2"
+        >
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <MonitorCheck className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            Stays on this device — no network destination
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              onClick={() => setActiveOutboundAction('print')}
+              size="lg"
+              aria-label="Print locally (stays on this device)"
+              className="py-5 h-auto text-sm rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
+            >
+              <Printer className="w-4 h-4 mr-2" /> Print (Primary)
+            </Button>
+            <Button
+              onClick={() => setActiveOutboundAction('copy')}
+              size="lg"
+              variant="outline"
+              aria-label="Copy as text locally (stays on this device)"
+              className="py-5 h-auto text-sm rounded-none"
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copy as Text
+            </Button>
+          </div>
+        </div>
+
+        {/* Tier 2 — External destination (leaves this device) */}
+        <div
+          role="group"
+          aria-label="External destination — leaves this device"
+          className="space-y-2 border-t border-border pt-3"
+        >
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>
+              Leaves this device — sent to{' '}
+              <span className="font-mono font-semibold text-foreground">SLHD-RPA-allergynurses@health.nsw.gov.au</span>
+            </span>
+          </p>
+          {!isOnline && (
+            <p className="text-xs text-status-warning" role="status">
+              Offline — email is unavailable until the connection returns. Local print and copy still work.
+            </p>
+          )}
           <Button
             onClick={() => setActiveOutboundAction('email')}
             size="lg"
             variant="outline"
-            className="py-5 h-auto text-sm rounded-none"
+            disabled={!isOnline}
+            aria-label="Send via email to the allergy nurses mailbox (leaves this device)"
+            className="w-full py-4 h-auto text-sm rounded-none"
           >
             <Mail className="w-4 h-4 mr-2" /> Send via Email
           </Button>
         </div>
       </div>
 
-      {/* Research Section */}
+      {/* Research Section — Tier 3: separate de-identified research submission */}
       {research.isAvailable && (
-        <div className="border border-border bg-card p-4 space-y-3 no-print rounded-none">
+        <div
+          role="group"
+          aria-label="Research submission — de-identified payload only"
+          className="border border-border bg-card p-4 space-y-3 no-print rounded-none"
+        >
           <h3 className="section-label">Research Database:</h3>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            Only the de-identified research payload is transmitted — no patient identifiers
+          </p>
           {research.isSubmitted ? (
-            <div className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none">
+            <div
+              id="research-submission-status"
+              tabIndex={-1}
+              className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none focus-visible:outline-none"
+              role="status"
+              aria-live="polite"
+            >
               <CheckCircle2 className="w-4 h-4" /> Submitted to Research Database
             </div>
           ) : (
-            <Button
-              onClick={() => setActiveOutboundAction('research')}
-              disabled={research.isSubmitting}
-              size="lg"
-              variant="outline"
-              className="w-full py-4 h-auto text-sm rounded-none border-dashed"
-            >
-              {research.isSubmitting ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving to Research Database…</>
-              ) : (
-                <><Database className="w-4 h-4 mr-2" /> Save to Research Database</>
+            <>
+              {!isOnline && (
+                <p className="text-xs text-status-warning" role="status">
+                  Offline — research submission is unavailable until the connection returns.
+                </p>
               )}
-            </Button>
+              <Button
+                onClick={() => setActiveOutboundAction('research')}
+                disabled={research.isSubmitting || !isOnline}
+                size="lg"
+                variant="outline"
+                aria-label="Save de-identified data to the research database"
+                className="w-full py-4 h-auto text-sm rounded-none border-dashed"
+              >
+                {research.isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving to Research Database…</>
+                ) : (
+                  <><Database className="w-4 h-4 mr-2" /> Save to Research Database</>
+                )}
+              </Button>
+            </>
           )}
           {research.error && (
-            <p className="mt-1 text-xs text-destructive text-center">{research.error}</p>
+            <p className="mt-1 text-xs text-destructive text-center" role="alert">{research.error}</p>
           )}
         </div>
       )}

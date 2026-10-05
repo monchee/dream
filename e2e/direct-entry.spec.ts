@@ -28,7 +28,10 @@ test.describe('Home quick-start entry points', () => {
     await expect(page.getByLabel(/First Name/i)).toBeEditable();
     await expect(page.getByLabel(/Last Name/i)).toBeEditable();
     await expect(page.getByLabel(/Date of Birth/i)).toBeEditable();
-    await expect(page.getByLabel(/Patient identity/i)).toHaveCount(0);
+    // R2 identity rail: always present; direct entry shows the NO IDENTITY ENTERED state
+    const identityRail = page.getByLabel('Active patient identity');
+    await expect(identityRail).toBeVisible();
+    await expect(identityRail).toContainText('NO IDENTITY ENTERED');
 
     // Save is not rendered on section 0 for a first attempt — jump to Review and save
     // to trigger it. The failed validation (empty required fields) redirects back to
@@ -49,7 +52,10 @@ test.describe('Home quick-start entry points', () => {
     await expect(page.getByRole('heading', { name: 'Allergy Testing', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Patient Identity', exact: true })).toBeVisible();
     await expect(page.getByLabel(/REDCap ID/i)).toBeEditable();
-    await expect(page.getByLabel(/Patient identity/i)).toHaveCount(0);
+    // R2 identity rail: always present; direct entry shows the NO IDENTITY ENTERED state
+    const identityRail = page.getByLabel('Active patient identity');
+    await expect(identityRail).toBeVisible();
+    await expect(identityRail).toContainText('NO IDENTITY ENTERED');
   });
 
   test('routes a successful Home REDCap upload to Dashboard', async ({ page }) => {

@@ -19,6 +19,14 @@ export interface ClinicalContextBarProps {
   ariaLabel?: string;
 }
 
+/**
+ * Patient identity rail (R2, plans/003 redesigns).
+ *
+ * A safety surface, not a status sentence: family name, given name, REDCap ID
+ * and DOB are permanently visible together at every width — they wrap, and
+ * never truncate or scroll horizontally. Secondary dates and the source sit
+ * in a details disclosure that does not displace the primary fields.
+ */
 export function ClinicalContextBar({
   context,
   firstName: propFirstName,
@@ -47,7 +55,84 @@ export function ClinicalContextBar({
     ? `${redact(lastName.toUpperCase())}, ${redact(firstName)}`
     : 'NO IDENTITY ENTERED';
 
-  const accessibleLabel = ariaLabelProp || ariaLabel || 'Current patient and encounter';
+  const accessibleLabel = ariaLabelProp || ariaLabel || 'Active patient identity';
+
+  const redcapValue = mrn ? redact(mrn) : '—';
+  const dobValue = dob ? redact(formatDate(dob)) : 'not recorded';
+
+  const sourceChip =
+    source === 'direct' ? (
+      <span className="border border-status-info/40 bg-status-info/10 text-status-info text-xs px-1.5 py-0.5 rounded-none font-semibold uppercase tracking-wider">
+        Direct Entry
+      </span>
+    ) : source === 'manual' ? (
+      <span className="border border-border bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-none font-semibold uppercase tracking-wider">
+        Manual Entry
+      </span>
+    ) : null;
+
+  const detailsButton = (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="View patient details"
+          className={cn(
+            'inline-flex items-center justify-center gap-1 px-2.5 min-h-[44px] min-w-[44px] text-xs font-semibold rounded-none shrink-0',
+            'border border-border bg-background hover:bg-muted text-foreground transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background'
+          )}
+        >
+          <span>Details</span>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        sideOffset={6}
+        className="w-72 sm:w-80 rounded-none border border-border bg-card p-3 shadow-lg text-card-foreground"
+      >
+        <div className="space-y-2 text-xs">
+          <div className="font-semibold text-foreground border-b border-border pb-1.5 flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Patient Details</span>
+            {sourceChip}
+          </div>
+
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+            <dt className="text-muted-foreground font-medium">Name</dt>
+            <dd className="font-semibold text-foreground break-words m-0">{formattedName}</dd>
+
+            <dt className="text-muted-foreground font-medium">REDCap ID</dt>
+            <dd className="font-mono font-semibold text-foreground m-0">{redcapValue}</dd>
+
+            <dt className="text-muted-foreground font-medium">DOB</dt>
+            <dd className="text-foreground m-0">{dobValue}</dd>
+
+            {reactionDate && (
+              <>
+                <dt className="text-muted-foreground font-medium">Reaction</dt>
+                <dd className="text-foreground m-0">{redact(formatDate(reactionDate))}</dd>
+              </>
+            )}
+
+            {visitDate && (
+              <>
+                <dt className="text-muted-foreground font-medium">Visit</dt>
+                <dd className="text-foreground m-0">{redact(formatDate(visitDate))}</dd>
+              </>
+            )}
+
+            {source && source !== 'direct' && source !== 'manual' && (
+              <>
+                <dt className="text-muted-foreground font-medium">Source</dt>
+                <dd className="text-foreground capitalize m-0">{source}</dd>
+              </>
+            )}
+          </dl>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 
   return (
     <aside
@@ -57,132 +142,43 @@ export function ClinicalContextBar({
         className,
       )}
     >
-      {/* Mobile compact patient strip (<768px, md:hidden): ~36px height */}
-      <div className="md:hidden px-3 sm:px-4 py-1 min-h-[36px] flex items-center justify-between gap-2 min-w-0">
-        <div className="flex items-center gap-1.5 min-w-0 text-xs font-medium text-foreground overflow-hidden">
-          <span className="font-semibold truncate">{formattedName}</span>
-          <span aria-hidden="true" className="text-muted-foreground shrink-0">·</span>
-          <span className="shrink-0">
-            REDCap ID <span className="font-mono font-semibold">{mrn ? redact(mrn) : '—'}</span>
+      {/* Mobile identity rail (<768px): three dedicated rows — name, ID/DOB, details */}
+      <div className="md:hidden px-3 sm:px-4 py-2 flex flex-col gap-1 min-w-0">
+        <span className="font-semibold text-sm text-foreground break-words min-w-0 leading-5">
+          {formattedName}
+        </span>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-medium text-foreground">
+          <span className="whitespace-nowrap">
+            REDCap ID <span className="font-mono font-semibold">{redcapValue}</span>
           </span>
+          <span aria-hidden="true" className="text-muted-foreground">·</span>
+          <span className="whitespace-nowrap">DOB {dobValue}</span>
         </div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              aria-label="View patient details"
-              className={cn(
-                'inline-flex items-center justify-center gap-1 px-2.5 py-1 min-h-[44px] min-w-[44px] text-xs font-semibold rounded-none shrink-0',
-                'border border-border bg-background hover:bg-muted text-foreground transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background'
-              )}
-            >
-              <span>Details</span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            sideOffset={6}
-            className="w-72 sm:w-80 rounded-none border border-border bg-card p-3 shadow-lg text-card-foreground"
-          >
-            <div className="space-y-2 text-xs">
-              <div className="font-semibold text-foreground border-b border-border pb-1.5 flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Patient Details</span>
-                {source === 'direct' && (
-                  <span className="border border-status-info/40 bg-status-info/10 text-status-info text-xs px-1.5 py-0.5 rounded-none font-semibold uppercase tracking-wider">
-                    Direct Entry
-                  </span>
-                )}
-                {source === 'manual' && (
-                  <span className="border border-border bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-none font-semibold uppercase tracking-wider">
-                    Manual Entry
-                  </span>
-                )}
-              </div>
-
-              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
-                <dt className="text-muted-foreground font-medium">Name</dt>
-                <dd className="font-semibold text-foreground break-words m-0">{formattedName}</dd>
-
-                <dt className="text-muted-foreground font-medium">REDCap ID</dt>
-                <dd className="font-mono font-semibold text-foreground m-0">{mrn ? redact(mrn) : '—'}</dd>
-
-                <dt className="text-muted-foreground font-medium">DOB</dt>
-                <dd className="text-foreground m-0">{dob ? redact(formatDate(dob)) : 'not recorded'}</dd>
-
-                {reactionDate && (
-                  <>
-                    <dt className="text-muted-foreground font-medium">Reaction</dt>
-                    <dd className="text-foreground m-0">{redact(formatDate(reactionDate))}</dd>
-                  </>
-                )}
-
-                {visitDate && (
-                  <>
-                    <dt className="text-muted-foreground font-medium">Visit</dt>
-                    <dd className="text-foreground m-0">{formatDate(visitDate)}</dd>
-                  </>
-                )}
-
-                {source && source !== 'direct' && source !== 'manual' && (
-                  <>
-                    <dt className="text-muted-foreground font-medium">Source</dt>
-                    <dd className="text-foreground capitalize m-0">{source}</dd>
-                  </>
-                )}
-              </dl>
-            </div>
-          </PopoverContent>
-        </Popover>
+        <div>{detailsButton}</div>
       </div>
 
-      {/* Tablet / Desktop full context bar (>=768px, hidden md:block) */}
-      <div className="hidden md:block py-2 overflow-x-auto">
+      {/* Tablet / Desktop identity rail (>=768px): single wrapping row */}
+      <div className="hidden md:block py-2">
         <div className="max-w-6xl mx-auto px-4 sm:px-5 md:px-6">
-          <div className="flex min-w-max items-center gap-2 whitespace-nowrap text-sm font-medium text-foreground">
-            <span className="font-semibold">{formattedName}</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-foreground">
+            <span className="font-semibold break-words min-w-0">{formattedName}</span>
 
             <span aria-hidden="true" className="text-muted-foreground">·</span>
-            <span>
-              REDCap ID <span className="font-mono font-semibold">{mrn ? redact(mrn) : '—'}</span>
+            <span className="whitespace-nowrap">
+              REDCap ID <span className="font-mono font-semibold">{redcapValue}</span>
             </span>
 
             <span aria-hidden="true" className="text-muted-foreground">·</span>
-            <span>DOB {dob ? redact(formatDate(dob)) : 'not recorded'}</span>
+            <span className="whitespace-nowrap">DOB {dobValue}</span>
 
-            {reactionDate ? (
+            {sourceChip && (
               <>
                 <span aria-hidden="true" className="text-muted-foreground">·</span>
-                <span>Reaction {redact(formatDate(reactionDate))}</span>
-              </>
-            ) : null}
-
-            {visitDate ? (
-              <>
-                <span aria-hidden="true" className="text-muted-foreground">·</span>
-                <span>Visit {formatDate(visitDate)}</span>
-              </>
-            ) : null}
-
-            {source === 'direct' && (
-              <>
-                <span aria-hidden="true" className="text-muted-foreground">·</span>
-                <span className="border border-status-info/40 bg-status-info/10 text-status-info text-xs px-1.5 py-0.5 rounded-none font-semibold uppercase tracking-wider">
-                  Direct Entry
-                </span>
+                {sourceChip}
               </>
             )}
 
-            {source === 'manual' && (
-              <>
-                <span aria-hidden="true" className="text-muted-foreground">·</span>
-                <span className="border border-border bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-none font-semibold uppercase tracking-wider">
-                  Manual Entry
-                </span>
-              </>
-            )}
+            <span className="ml-auto shrink-0">{detailsButton}</span>
           </div>
         </div>
       </div>

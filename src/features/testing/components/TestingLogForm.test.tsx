@@ -189,6 +189,10 @@ describe('TestingLogForm (Indexed Workflow)', () => {
       render(<TestWrapper initialData={mockFormData} props={mockProps} />);
       fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
 
+      // R1 two-speed cockpit: the plan lane starts collapsed when drugs are
+      // already selected — open it before selecting more.
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+
       const suxButton = screen.getByText('Suxamethonium');
       fireEvent.click(suxButton);
 
@@ -216,6 +220,9 @@ describe('TestingLogForm (Indexed Workflow)', () => {
       render(<TestWrapper initialData={mockFormData} props={mockProps} />);
       fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
 
+      // R1 two-speed cockpit: open the plan lane to reach the drug chips.
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+
       const rocuroniumBtn = screen.getByRole('button', { name: 'Rocuronium' });
       expect(rocuroniumBtn).toHaveAttribute('aria-pressed', 'true');
 
@@ -228,6 +235,70 @@ describe('TestingLogForm (Indexed Workflow)', () => {
       expect(mockProps.setFormData).toHaveBeenCalledWith(expect.objectContaining({
         testPanel: [],
       }));
+    });
+
+    it('opens the plan lane by default when no drugs are selected', () => {
+      render(<TestWrapper initialData={{ ...mockFormData, testPanel: [] }} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      const disclosure = screen.getByRole('button', { name: /Testing plan & drug selection/i });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByText('Select Drugs to Test:')).toBeInTheDocument();
+    });
+
+    it('auto-collapses the plan lane when the first drug is selected', () => {
+      render(<TestWrapper initialData={{ ...mockFormData, testPanel: [] }} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      const disclosure = screen.getByRole('button', { name: /Testing plan & drug selection/i });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+
+      // Selecting the first drug collapses the lane so recording leads
+      fireEvent.click(screen.getByRole('button', { name: 'Rocuronium' }));
+
+      expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByText('Select Drugs to Test:')).not.toBeInTheDocument();
+    });
+
+    it('keeps the plan-lane disclosure state out of the clinical draft', () => {
+      render(<TestWrapper initialData={mockFormData} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      const callsBefore = (mockProps.setFormData as ReturnType<typeof vi.fn>).mock.calls.length;
+
+      // Toggle the lane open and closed — a session-only UI concern
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+
+      expect((mockProps.setFormData as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
+    });
+
+    it('counts custom (Other) drugs in the plan summary and keeps the lane open for setup', () => {
+      render(<TestWrapper initialData={{ ...mockFormData, testPanel: [] }} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      // Custom rows carry a stable custom-* id but still belong to the panel.
+      // The lane stays open because the custom drug needs concentrations.
+      fireEvent.click(screen.getByRole('button', { name: /^Other$/ }));
+
+      const disclosure = screen.getByRole('button', { name: /Testing plan & drug selection/i });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      expect(disclosure).toHaveTextContent(/1 drug selected/);
+    });
+
+    it('keeps the plan-lane disclosure state across section navigation', () => {
+      render(<TestWrapper initialData={mockFormData} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      // Manual toggle: open the lane
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+      expect(screen.getByRole('button', { name: /Testing plan & drug selection/i })).toHaveAttribute('aria-expanded', 'true');
+
+      // Navigate away and back — session state persists
+      fireEvent.click(screen.getByRole('button', { name: /3\.\s*Drug challenge/i }));
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      expect(screen.getByRole('button', { name: /Testing plan & drug selection/i })).toHaveAttribute('aria-expanded', 'true');
     });
   });
 
