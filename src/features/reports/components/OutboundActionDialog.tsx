@@ -71,22 +71,30 @@ export function OutboundActionDialog({
   // the output control that opened it is handled here.
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
+  // Restores focus to the control that opened the dialog; if that control was
+  // removed while the dialog was open (e.g. a successful research submission
+  // replaces its own button with a status banner), move focus to the status
+  // banner instead so focus never falls back to the document.
+  const restoreFocusToTrigger = () => {
+    const target = returnFocusRef.current;
+    returnFocusRef.current = null;
+    if (!target) return;
+    requestAnimationFrame(() => {
+      if (target.isConnected) {
+        target.focus();
+        return;
+      }
+      const fallback = document.getElementById('research-submission-status');
+      fallback?.focus?.();
+    });
+  };
+
   useEffect(() => {
     if (open) {
       returnFocusRef.current = document.activeElement as HTMLElement | null;
-    } else if (returnFocusRef.current) {
-      // Restore after Radix has torn the dialog down
-      const target = returnFocusRef.current;
-      requestAnimationFrame(() => target.focus?.());
-      returnFocusRef.current = null;
+      return;
     }
-    return () => {
-      if (open) {
-        const target = returnFocusRef.current;
-        requestAnimationFrame(() => target?.focus?.());
-        returnFocusRef.current = null;
-      }
-    };
+    restoreFocusToTrigger();
   }, [open]);
 
   const patientName =

@@ -26,6 +26,24 @@ export interface DrugTestPanelSectionProps {
   onRemoveCustomIdtStep: (rowIndex: number, stepIndex: number) => void;
   /** R1: section actions (Previous/Next) rendered in the record lane, before the plan lane. */
   sectionActions?: React.ReactNode;
+  /** R1: plan-lane state lives in the parent so it survives section navigation (session-persistent). */
+  planLaneOpen: boolean;
+  onPlanLaneToggle: () => void;
+  onPlanLaneOpen: () => void;
+  onPlanLaneSet: (open: boolean) => void;
+  planLaneManual: boolean;
+}
+
+/** A row belongs to the active session panel when it is a fresh selection or a custom (Other) row — custom rows carry stable `custom-*` ids. */
+function isInSessionPanel(row: LogFormData['testPanel'][number]): boolean {
+  return !row.id || row.drugName === 'Other';
+}
+
+/** A custom drug still needs concentrations before it can be tested. */
+function customDrugNeedsSetup(row: LogFormData['testPanel'][number]): boolean {
+  return row.drugName === 'Other'
+    && !row.customSptConcentration
+    && (row.customIdtSteps ?? []).length === 0;
 }
 
 export function DrugTestPanelSection({
@@ -45,50 +63,42 @@ export function DrugTestPanelSection({
   onAddCustomIdtStep,
   onRemoveCustomIdtStep,
   sectionActions,
+  planLaneOpen,
+  onPlanLaneToggle,
+  onPlanLaneOpen,
+  onPlanLaneSet,
+  planLaneManual,
 }: DrugTestPanelSectionProps) {
-  const selectedCount = formData.testPanel.filter(row => !row.id).length;
+  const selectedRows = formData.testPanel.filter(isInSessionPanel);
+  const selectedCount = selectedRows.length;
 
-  // R1 two-speed cockpit: the plan lane auto-manages until the nurse takes
-  // over — open while nothing is selected, collapse on the first selection,
-  // re-open if the panel empties. A manual toggle stops auto-management for
-  // the session. Disclosure state is session-only and never part of the
-  // clinical draft.
-  const [planOpen, setPlanOpen] = React.useState(selectedCount === 0);
-  const [planManuallyToggled, setPlanManuallyToggled] = React.useState(false);
+  // R1: auto-manage the lane until the nurse overrides — open while empty,
+  // collapse on the first selection, re-open if the panel empties.
   const previousSelectedCount = React.useRef(selectedCount);
 
   React.useEffect(() => {
-    if (planManuallyToggled) return;
-    if (previousSelectedCount.current === 0 && selectedCount > 0) {
-      setPlanOpen(false);
+    // Initial sync on mount: lane open iff nothing is selected yet.
+    if (!planLaneManual) onPlanLaneSet(selectedCount === 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  React.useEffect(() => {
+    if (planLaneManual) return;
+    // An unconfigured custom drug needs the lane open — don't pull it out from
+    // under the nurse; configured selections collapse as before.
+    const unconfiguredCustom = formData.testPanel.some(
+      row => isInSessionPanel(row) && customDrugNeedsSetup(row),
+    );
+    if (previousSelectedCount.current === 0 && selectedCount > 0 && !unconfiguredCustom) {
+      onPlanLaneSet(false);
     }
     if (selectedCount === 0) {
-      setPlanOpen(true);
+      onPlanLaneSet(true);
     }
     previousSelectedCount.current = selectedCount;
-  }, [selectedCount, planManuallyToggled]);
-
-  // A custom drug without concentrations cannot be tested — surface the plan
-  // lane so the nurse can complete it, even mid-recording.
-  React.useEffect(() => {
-    const needsPlan = formData.testPanel.some(
-      row => !row.id && row.drugName === 'Other' && !row.customSptConcentration && (row.customIdtSteps ?? []).length === 0,
-    );
-    if (needsPlan) setPlanOpen(true);
-  }, [formData.testPanel]);
-
-  const togglePlanLane = () => {
-    setPlanManuallyToggled(true);
-    setPlanOpen(open => !open);
-  };
-
-  const openPlanLane = () => {
-    setPlanManuallyToggled(true);
-    setPlanOpen(true);
-  };
+  }, [selectedCount, planLaneManual, onPlanLaneSet, formData.testPanel]);
 
   // One-line plan status: drugs, protocol options, and dilution steps.
-  const selectedRows = formData.testPanel.filter(row => !row.id);
   const protocolChoiceCount = selectedRows.filter(
     row => row.drugName !== 'Other' && getSkinProtocolsForDrug(row.drugName).length > 1,
   ).length;
@@ -148,8 +158,8 @@ export function DrugTestPanelSection({
           onRemove={onRemoveRow}
           onAddCustomIdtStep={onAddCustomIdtStep}
           onRemoveCustomIdtStep={onRemoveCustomIdtStep}
-          planDetailsVisible={planOpen}
-          onOpenPlan={openPlanLane}
+          variant="record"
+          onOpenPlan={onPlanLaneOpen}
         />
 
         {/* Section actions sit in the record lane, before the plan lane (R1 focus order) */}
@@ -159,9 +169,9 @@ export function DrugTestPanelSection({
         <div className="border border-border rounded-none">
           <button
             type="button"
-            onClick={togglePlanLane}
-            aria-expanded={planOpen}
-            aria-controls={planOpen ? 'testing-plan-lane' : undefined}
+            onClick={onPlanLaneToggle}
+            aria-expanded={planLaneOpen}
+            aria-controls={planLaneOpen ? 'testing-plan-lane' : undefined}
             className="w-full min-h-[44px] flex items-center justify-between gap-3 px-4 py-2.5 text-left bg-muted/50 hover:bg-muted transition-colors rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           >
             <span className="flex items-center gap-2 min-w-0 text-sm font-semibold text-foreground">
@@ -178,12 +188,12 @@ export function DrugTestPanelSection({
               </span>
             </span>
             <ChevronDown
-              className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-150 ${planOpen ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-150 ${planLaneOpen ? 'rotate-180' : ''}`}
               aria-hidden="true"
             />
           </button>
 
-          {planOpen && (
+          {planLaneOpen && (
             <div id="testing-plan-lane" className="space-y-4 p-4 border-t border-border">
               <div className="flex justify-between items-center border-b border-border pb-2">
                 <Label className="section-label">
@@ -287,6 +297,23 @@ export function DrugTestPanelSection({
                   <p className="text-xs text-muted-foreground col-span-full py-2">No drugs match &ldquo;{drugFilter}&rdquo;</p>
                 )}
               </div>
+
+              {/* Per-drug plan content (protocol, concentrations, notes) lives in the plan lane */}
+              {selectedCount > 0 && (
+                <div className="space-y-3 pt-2 border-t border-dashed border-border">
+                  <p className="section-label">Per-drug plan details</p>
+                  <DrugTestGrid
+                    testPanel={formData.testPanel}
+                    drugToCategoryMap={drugToCategoryMap}
+                    onUpdate={onUpdateDrugData}
+                    onSelectProtocol={onSelectProtocol}
+                    onRemove={onRemoveRow}
+                    onAddCustomIdtStep={onAddCustomIdtStep}
+                    onRemoveCustomIdtStep={onRemoveCustomIdtStep}
+                    variant="plan"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -307,7 +307,9 @@ function SummaryScreenContent({
           </p>
           {research.isSubmitted ? (
             <div
-              className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none"
+              id="research-submission-status"
+              tabIndex={-1}
+              className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none focus-visible:outline-none"
               role="status"
               aria-live="polite"
             >

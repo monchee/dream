@@ -67,6 +67,17 @@ const TestingLogForm: React.FC<TestingLogFormProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationErrorLink[]>([]);
   const [drugFilter, setDrugFilter] = useState('');
   const [nurseNotesOpen, setNurseNotesOpen] = useState(true);
+  // R1: plan-lane state lives here so it survives section navigation (session-persistent).
+  const [planLaneOpen, setPlanLaneOpen] = useState(true);
+  const [planLaneManual, setPlanLaneManual] = useState(false);
+  const handlePlanLaneToggle = useCallback(() => {
+    setPlanLaneManual(true);
+    setPlanLaneOpen(open => !open);
+  }, []);
+  const handlePlanLaneOpen = useCallback(() => {
+    setPlanLaneManual(true);
+    setPlanLaneOpen(true);
+  }, []);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
 
   const testingService = new TestingService();
@@ -237,6 +248,11 @@ const TestingLogForm: React.FC<TestingLogFormProps> = ({
               onAddCustomIdtStep={addCustomIdtStep}
               onRemoveCustomIdtStep={removeCustomIdtStep}
               sectionActions={stepNavigationControls}
+              planLaneOpen={planLaneOpen}
+              onPlanLaneToggle={handlePlanLaneToggle}
+              onPlanLaneOpen={handlePlanLaneOpen}
+              onPlanLaneSet={setPlanLaneOpen}
+              planLaneManual={planLaneManual}
             />
           )}
 

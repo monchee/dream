@@ -272,6 +272,34 @@ describe('TestingLogForm (Indexed Workflow)', () => {
 
       expect((mockProps.setFormData as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
     });
+
+    it('counts custom (Other) drugs in the plan summary and keeps the lane open for setup', () => {
+      render(<TestWrapper initialData={{ ...mockFormData, testPanel: [] }} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      // Custom rows carry a stable custom-* id but still belong to the panel.
+      // The lane stays open because the custom drug needs concentrations.
+      fireEvent.click(screen.getByRole('button', { name: /^Other$/ }));
+
+      const disclosure = screen.getByRole('button', { name: /Testing plan & drug selection/i });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      expect(disclosure).toHaveTextContent(/1 drug selected/);
+    });
+
+    it('keeps the plan-lane disclosure state across section navigation', () => {
+      render(<TestWrapper initialData={mockFormData} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      // Manual toggle: open the lane
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+      expect(screen.getByRole('button', { name: /Testing plan & drug selection/i })).toHaveAttribute('aria-expanded', 'true');
+
+      // Navigate away and back — session state persists
+      fireEvent.click(screen.getByRole('button', { name: /3\.\s*Drug challenge/i }));
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      expect(screen.getByRole('button', { name: /Testing plan & drug selection/i })).toHaveAttribute('aria-expanded', 'true');
+    });
   });
 
   describe('Section 3: Drug Challenge', () => {
