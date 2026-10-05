@@ -42,7 +42,7 @@ const PatientHandout = ({ data, activeReportSavedAt }: PatientHandoutProps) => {
         <CardContent className="p-4 md:p-8 lg:p-12 space-y-8 print:p-3 print:space-y-2">
            
            {/* Header Info */}
-            <div className="section-card bg-muted border border-border rounded-none p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 print:grid-cols-3 print:bg-white print:border-slate-300 print:p-2">
+            <div className="section-card bg-muted border border-border rounded-none p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 print:grid-cols-3 print:bg-white print-rule print:p-2">
                <div>
                   <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider print:text-[9px]">Patient Name</p>
                   <p className="text-xl font-semibold tracking-tight text-primary print:text-sm print:text-black">{patientName}</p>
@@ -90,7 +90,7 @@ const PatientHandout = ({ data, activeReportSavedAt }: PatientHandoutProps) => {
               {negResults.length > 0 ? (
                  <ul className="space-y-3 print:space-y-1">
                     {negResults.map((drugName, idx) => (
-                        <li key={idx} className="bg-status-success/10 border border-status-success/30 p-4 rounded-none flex justify-between items-center print:bg-white print:border-slate-500 print:p-1.5 print:text-xs">
+                        <li key={idx} className="bg-status-success/10 border border-status-success/30 p-4 rounded-none flex justify-between items-center print:bg-white print-rule print:p-1.5 print:text-xs">
                            <span className="font-semibold text-foreground text-lg print:text-xs print:text-black">{drugName}</span>
                            <span className="border border-status-success text-status-success bg-status-success/10 text-xs font-semibold px-2 py-1 rounded-none print:border-black print:text-black print:bg-white print:px-1.5 print:py-0.5 print:text-[9px]">SAFE</span>
                         </li>
@@ -102,7 +102,7 @@ const PatientHandout = ({ data, activeReportSavedAt }: PatientHandoutProps) => {
             </div>
 
            {/* Department Info */}
-            <div className="section-card bg-muted border border-border rounded-none p-4 text-sm space-y-2 print:bg-white print:border-slate-300 print:p-2 print:space-y-0.5 print:text-xs">
+            <div className="section-card bg-muted border border-border rounded-none p-4 text-sm space-y-2 print:bg-white print-rule print:p-2 print:space-y-0.5 print:text-xs">
                <h3 className="font-semibold text-primary mb-2 uppercase text-xs tracking-wider print:text-[10px] print:mb-1 print:text-black">Contact Information</h3>
                <p className="font-semibold dark:text-foreground/90 print:text-xs">Department of Clinical Immunology & Allergy</p>
               <p className="dark:text-foreground/80 print:text-xs">Royal Prince Alfred Hospital</p>
@@ -112,7 +112,7 @@ const PatientHandout = ({ data, activeReportSavedAt }: PatientHandoutProps) => {
               <p className="pt-2 text-muted-foreground italic print:pt-1 print:text-xs max-w-prose">If you have any questions about these results, please contact the clinic.</p>
             </div>
 
-            <div className="section-card bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-none p-4 text-center text-sm print:bg-white print:border-slate-300 print:text-xs">
+            <div className="section-card bg-status-info/10 dark:bg-status-info/20 border border-status-info/30 dark:border-status-info/30 rounded-none p-4 text-center text-sm print:bg-white print-rule print:text-xs">
                <p className="text-foreground/80">This report summarises your skin and/or challenge tests performed today.</p>
                <p className="font-semibold text-foreground mt-2 print:mt-1">Please provide this document to your anaesthetist before any future surgery.</p>
             </div>

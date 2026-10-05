@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/components/ui';
-import { Activity, Check, Plus, Search, X } from 'lucide-react';
+import { Activity, Check, Plus, Search } from 'lucide-react';
 import { LogFormData } from '@shared/types';
 import { CATEGORY_THEMES, DEFAULT_THEME } from '@shared/utils/constants';
+import { FilterClearButton } from '@shared/components/controls';
 import { DrugTestGrid } from './DrugTestGrid';
 import { preventNegativeInput } from './TestingLogFormSectionShared';
 
@@ -63,7 +64,7 @@ export function DrugTestPanelSection({
               variant="ghost"
               size="sm"
               onClick={onClearPanel}
-              className="text-xs text-muted-foreground hover:text-destructive h-6 px-2 rounded-none font-normal"
+              className="text-xs text-muted-foreground hover:text-destructive min-h-[44px] xl:min-h-0 xl:h-6 px-2 rounded-none font-normal"
               title="Clear all selected drugs"
             >
               Clear All
@@ -77,15 +78,14 @@ export function DrugTestPanelSection({
               value={drugFilter}
               onChange={e => setDrugFilter(e.target.value)}
               placeholder="Filter drugs..."
-              className="h-8 pl-8 pr-8 text-xs rounded-none bg-background text-foreground"
+              className="h-11 xl:h-8 pl-8 pr-11 xl:pr-8 text-xs rounded-none bg-background text-foreground"
             />
             {drugFilter && (
-              <button
-                onClick={() => setDrugFilter('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+              <FilterClearButton
+                label="Clear drug filter"
+                onClear={() => setDrugFilter('')}
+                className="absolute right-1.5 xl:right-2 top-1/2 -translate-y-1/2 focus-visible:ring-1 focus-visible:ring-ring"
+              />
             )}
           </div>
 
@@ -128,7 +128,7 @@ export function DrugTestPanelSection({
                           key={drug}
                           onClick={() => onToggleDrug(drug)}
                           aria-pressed={isSelected}
-                          className={`text-xs px-2.5 py-1.5 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
+                          className={`text-xs px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
                             isSelected
                               ? theme.btnSelected
                               : `bg-card text-muted-foreground border-border hover:bg-muted/50 ${theme.btnHover}`
@@ -143,7 +143,7 @@ export function DrugTestPanelSection({
                     {category === 'Others' && (
                       <button
                         onClick={onAddCustomDrug}
-                        className={`md:w-full text-xs px-2.5 py-1.5 rounded-none border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${theme.btnHover}`}
+                        className={`md:w-full text-xs px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-none border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${theme.btnHover}`}
                       >
                         <Plus className="w-3 h-3 shrink-0" />
                         Other

@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Public Sans — self-hosted (SIL Open Font License 1.1), variable weight 100-900.
+   Served same-origin so the workbench renders correctly offline and no font
+   request leaves the machine. */
+@font-face {
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/public-sans-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Public Sans';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/public-sans-latin-wght-italic.woff2') format('woff2-variations');
+}
+
 @layer base {
   body {
     font-family: 'Public Sans', sans-serif;
@@ -71,17 +89,22 @@
     --ring: 217 100% 19.6%; /* NSW Health Blue #002664 */
     
     /* Medical Status Colors (Grade I - IV) */
-    --status-grade1: 142.1 76.2% 36.3%; /* emerald-600 */
-    --status-grade2: 37.7 92.1% 50.2%; /* amber-500 */
-    --status-grade3: 24.6 95% 53.1%; /* orange-500 */
-    --status-grade4: 346.8 77.2% 49.8%; /* rose-600 / red-600 */
+    /* WCAG AA: every status token passes 4.5:1 as text on background/card and on its own /10-/15 tints, and as a solid badge with its foreground token (light theme) */
+    --status-grade1: 142.1 76.2% 26%; /* deep emerald */
+    --status-grade1-foreground: 0 0% 100%;
+    --status-grade2: 37.7 92.1% 29%; /* deep amber */
+    --status-grade2-foreground: 0 0% 100%;
+    --status-grade3: 24.6 95% 34.5%; /* deep orange */
+    --status-grade3-foreground: 0 0% 100%;
+    --status-grade4: 346.8 77.2% 43%; /* deep rose */
+    --status-grade4-foreground: 0 0% 100%;
 
     /* Semantic Status Tokens */
-    --status-success: 142.1 76.2% 36.3%; /* emerald-600 */
+    --status-success: 142.1 76.2% 26%; /* deep emerald */
     --status-success-foreground: 0 0% 100%;
-    --status-warning: 37.7 92.1% 42%; /* amber-600 */
+    --status-warning: 37.7 92.1% 29%; /* deep amber */
     --status-warning-foreground: 0 0% 100%;
-    --status-danger: 0 84.2% 60.2%; /* red-500 */
+    --status-danger: 0 84.2% 42%; /* deep red */
     --status-danger-foreground: 0 0% 100%;
     --status-info: 220 54% 39%; /* NSW Info Blue */
     --status-info-foreground: 0 0% 100%;
@@ -253,20 +276,25 @@
     --ring:               217 90% 62%;
 
     /* ── Medical Status (vivid for clinical readability) ─────── */
+    /* WCAG AA: status tokens pass 4.5:1 as text on dark surfaces and on their own tints; solid badges pair each background with its near-black foreground token */
     --status-grade1:      142 65% 48%;
+    --status-grade1-foreground: 0 0% 10%;
     --status-grade2:      44  90% 52%;
-    --status-grade3:      25  90% 55%;
-    --status-grade4:      347 75% 55%;
+    --status-grade2-foreground: 0 0% 10%;
+    --status-grade3:      25  90% 57%;
+    --status-grade3-foreground: 0 0% 10%;
+    --status-grade4:      347 77% 71%;
+    --status-grade4-foreground: 0 0% 10%;
 
     /* ── Semantic Status Tokens (Dark) ────────────────────────── */
     --status-success:     142 65% 48%;
-    --status-success-foreground: 0 0% 100%;
+    --status-success-foreground: 0 0% 10%;
     --status-warning:     44 90% 52%;
     --status-warning-foreground: 0 0% 10%;
-    --status-danger:      0 75% 55%;
-    --status-danger-foreground: 0 0% 100%;
-    --status-info:        220 70% 62%;
-    --status-info-foreground: 0 0% 100%;
+    --status-danger:      0 84% 71%;
+    --status-danger-foreground: 0 0% 10%;
+    --status-info:        220 70% 70%;
+    --status-info-foreground: 0 0% 10%;
     --path-testing:       174 58% 46%;
     --path-testing-foreground: 0 0% 10%;
     --status-neutral:     0 0% 65%;
@@ -632,6 +660,13 @@
     --background: 0 0% 100%;
     --card: 0 0% 100%;
     --foreground: 0 0% 0%;
+
+    /* Semantic monochrome print policy — the only colours print documents may consume */
+    --print-paper: 0 0% 100%;
+    --print-ink: 0 0% 0%;
+    --print-muted-ink: 0 0% 30%;
+    --print-rule: 0 0% 0%;
+    --print-alert-ink: 0 0% 0%;
   }
   body {
     -webkit-print-color-adjust: exact;
@@ -643,25 +678,39 @@
   }
   .no-print { display: none !important; }
   .print-break-inside-avoid { break-inside: avoid; }
+
+  /* Shared semantic print classes — consumed by clinical documents */
+  .print-paper { background-color: hsl(var(--print-paper)) !important; color: hsl(var(--print-ink)) !important; }
+  .print-ink { color: hsl(var(--print-ink)) !important; }
+  .print-muted-ink { color: hsl(var(--print-muted-ink)) !important; }
+  .print-rule { border-color: hsl(var(--print-rule)) !important; }
+  .print-alert-ink { color: hsl(var(--print-alert-ink)) !important; border-color: hsl(var(--print-alert-ink)) !important; }
+  .print-keep-together { break-inside: avoid; page-break-inside: avoid; }
+  .print-signature-block { break-inside: avoid; page-break-inside: avoid; }
+
   * {
     animation: none !important;
     transition: none !important;
   }
   h1, h2, h3, h4, h5, h6 {
-    color: #000 !important;
+    color: hsl(var(--print-ink)) !important;
     page-break-after: avoid;
     margin-top: 0.5em;
     margin-bottom: 0.3em;
   }
   table {
-    page-break-inside: avoid;
+    page-break-inside: auto;
+  }
+  table thead {
+    display: table-header-group;
   }
   tr {
     page-break-inside: avoid;
+    break-inside: avoid;
   }
   h3 { page-break-after: avoid; }
   h3 + * { page-break-before: avoid; }
-  table tr { page-break-inside: avoid; }
+  table tr { page-break-inside: avoid; break-inside: avoid; }
   .avoid-entry { page-break-inside: avoid; }
   .section-card { page-break-inside: avoid; }
 }

@@ -3,6 +3,7 @@ import { X, Filter, Calendar, Building2, Activity, Search as SearchIcon } from '
 import { Button, Badge, Input, Label, Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui';
 import { AdvancedSearchFilters as Filters } from '../hooks/useAdvancedSearch';
 import { DRUG_CATEGORIES, CATEGORY_THEMES } from '@shared/utils/constants';
+import { FilterClearButton } from '@shared/components/controls';
 
 interface AdvancedSearchFiltersProps {
   filters: Filters;
@@ -82,8 +83,8 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
     
     switch (outcome) {
       case 'all': return 'bg-primary text-primary-foreground border-transparent shadow-sm';
-      case 'completed': return 'bg-status-grade1 text-white border-transparent shadow-sm';
-      case 'abandoned': return 'bg-status-grade4 text-white border-transparent shadow-sm';
+      case 'completed': return 'bg-status-grade1 text-status-grade1-foreground border-transparent shadow-sm';
+      case 'abandoned': return 'bg-status-grade4 text-status-grade4-foreground border-transparent shadow-sm';
       default: return 'bg-primary text-primary-foreground border-transparent shadow-sm';
     }
   };
@@ -139,10 +140,11 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
                   <button
                     key={grade.value}
                     onClick={() => toggleGrade(grade.value)}
+                    aria-pressed={isSelected}
                     aria-label={grade.label}
                     className={`
                       ${isUngraded ? 'col-span-2' : 'col-span-1'}
-                      h-9 rounded-none border text-xs font-bold transition-[color,background-color,border-color,box-shadow] flex items-center justify-center gap-1
+                      min-h-[44px] rounded-none border text-xs font-bold transition-[color,background-color,border-color,box-shadow] flex items-center justify-center gap-1
                       ${isSelected
                         ? `${grade.color} ring-1 ring-inset ring-current shadow-sm`
                         : 'bg-card text-muted-foreground border-border hover:border-primary/50'
@@ -169,11 +171,12 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
             <Label className="section-label mb-3 block">
               Procedure Outcome
             </Label>
-            <div className="flex bg-muted dark:bg-card p-1 border border-border h-9">
+            <div className="flex bg-muted dark:bg-card p-1 border border-border h-11 xl:h-9" role="group" aria-label="Procedure outcome">
               {(['all', 'completed', 'abandoned'] as const).map(outcome => (
                 <button
                   key={outcome}
                   onClick={() => updateFilter('outcomeFilter', outcome)}
+                  aria-pressed={filters.outcomeFilter === outcome}
                   className={`
                     flex-1 px-3 text-xs font-bold transition-[color,background-color,border-color,box-shadow] capitalize whitespace-nowrap flex items-center justify-center
                     ${getOutcomeStyle(outcome, filters.outcomeFilter === outcome)}
@@ -280,7 +283,7 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
             variant="ghost"
             size="sm"
             onClick={clearFilters}
-            className="h-8 px-2.5 text-xs font-bold uppercase tracking-[0.05em] text-muted-foreground hover:text-destructive hover:bg-destructive/10 ml-auto transition-colors rounded-none"
+            className="min-h-[44px] xl:h-8 px-2.5 text-xs font-bold uppercase tracking-[0.05em] text-muted-foreground hover:text-destructive hover:bg-destructive/10 ml-auto transition-colors rounded-none"
           >
             <X className="w-3 h-3 mr-1" />
             Clear All
@@ -294,19 +297,19 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
           <div className="px-4 py-3 border-b border-border bg-muted/40 dark:bg-card/50 flex flex-wrap items-center gap-4 justify-between">
             <div className="relative w-full max-w-[320px]">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search specific drugs or agents..." 
+              <Input
+                placeholder="Search specific drugs or agents..."
+                aria-label="Search specific drugs or agents"
                 value={agentSearch}
                 onChange={(e) => setAgentSearch(e.target.value)}
-                className="pl-9 pr-9 h-8 text-xs rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary bg-background w-full shadow-sm"
+                className="pl-9 pr-11 xl:pr-9 h-11 xl:h-8 text-xs rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary bg-background w-full shadow-sm"
               />
               {agentSearch && (
-                <button 
-                  onClick={() => setAgentSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground flex items-center justify-center p-1 rounded-none hover:bg-muted transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <FilterClearButton
+                  label="Clear agent search"
+                  onClear={() => setAgentSearch('')}
+                  className="absolute right-1 xl:right-2 top-1/2 -translate-y-1/2 hover:bg-muted"
+                />
               )}
             </div>
             
@@ -330,8 +333,9 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
                         e.preventDefault();
                         toggleAgent(drug);
                       }}
+                      aria-pressed={isSelected}
                       className={`
-                        px-3 py-1.5 text-xs font-bold transition-[color,background-color,border-color,box-shadow] relative overflow-hidden group rounded-none
+                        px-3 py-1.5 min-h-[44px] xl:min-h-0 text-xs font-bold transition-[color,background-color,border-color,box-shadow] relative overflow-hidden group rounded-none
                         ${isSelected
                           ? `${theme.btnSelected} ring-1 ring-inset ring-black/5 dark:ring-white/5 shadow-sm scale-[1.02]`
                           : `bg-card text-muted-foreground border border-border hover:border-primary/50 hover:bg-card`

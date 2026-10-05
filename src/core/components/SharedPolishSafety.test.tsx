@@ -23,16 +23,16 @@ describe('Shared polish safety and semantic token regression tests', () => {
       expect(screen.getByText('Danger')).toHaveClass('bg-status-danger', 'text-status-danger-foreground');
 
       rerender(<Badge variant="grade1">Grade 1</Badge>);
-      expect(screen.getByText('Grade 1')).toHaveClass('bg-status-grade1');
+      expect(screen.getByText('Grade 1')).toHaveClass('bg-status-grade1', 'text-status-grade1-foreground');
 
       rerender(<Badge variant="grade2">Grade 2</Badge>);
-      expect(screen.getByText('Grade 2')).toHaveClass('bg-status-grade2', 'text-foreground');
+      expect(screen.getByText('Grade 2')).toHaveClass('bg-status-grade2', 'text-status-grade2-foreground');
 
       rerender(<Badge variant="grade3">Grade 3</Badge>);
-      expect(screen.getByText('Grade 3')).toHaveClass('bg-status-grade3');
+      expect(screen.getByText('Grade 3')).toHaveClass('bg-status-grade3', 'text-status-grade3-foreground');
 
       rerender(<Badge variant="grade4">Grade 4</Badge>);
-      expect(screen.getByText('Grade 4')).toHaveClass('bg-status-grade4');
+      expect(screen.getByText('Grade 4')).toHaveClass('bg-status-grade4', 'text-status-grade4-foreground');
     });
   });
 

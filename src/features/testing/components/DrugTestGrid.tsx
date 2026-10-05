@@ -9,6 +9,7 @@ import {
 import { X, Plus, Check, ChevronDown } from 'lucide-react';
 import { DrugTestRow, DrugProtocol } from '@shared/types';
 import { CATEGORY_THEMES, DEFAULT_THEME, SKIN_TEST_POSITIVE_THRESHOLD } from '@shared/utils/constants';
+import { CompactActionButton } from '@shared/components/controls';
 import { getSkinProtocolsForDrug } from '@shared/data/drugMasterlist';
 import { EmptyState } from '@shared/components/states';
 
@@ -42,7 +43,7 @@ const WhealInput = ({ value, onChange, 'aria-label': ariaLabel }: WhealInputProp
       pattern="[0-9]*"
       aria-label={ariaLabel}
       onKeyDown={preventNegativeInput}
-      className={`h-9 text-center font-mono tabular-nums rounded-none ${isPositive(value) ? 'text-status-danger font-bold bg-status-danger/10 border-status-danger/40 dark:bg-status-danger/20 dark:text-status-danger dark:border-status-danger/50' : ''}`}
+      className={`h-11 xl:h-9 text-center font-mono tabular-nums rounded-none ${isPositive(value) ? 'text-status-danger font-bold bg-status-danger/10 border-status-danger/40 dark:bg-status-danger/20 dark:text-status-danger dark:border-status-danger/50' : ''}`}
       placeholder="-"
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -87,7 +88,8 @@ const DrugRow = React.memo(({
       <div className="flex items-center gap-2">
         {row.drugName === 'Other' ? (
           <Input
-            className="h-9 text-sm flex-1 min-w-0 font-medium font-mono rounded-none"
+            aria-label="Custom drug name"
+            className="h-11 xl:h-9 text-sm flex-1 min-w-0 font-medium font-mono rounded-none"
             placeholder="Specify name..."
             value={row.customName || ''}
             onChange={(e) => onUpdate(index, 'customName', e.target.value)}
@@ -103,7 +105,8 @@ const DrugRow = React.memo(({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className={`shrink-0 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-none border transition-[color,background-color,border-color,box-shadow] focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${theme.btnSelected}`}
+                aria-label={`Switch protocol for ${row.drugName}`}
+                className={`shrink-0 inline-flex items-center justify-center gap-1 text-xs px-2 py-0.5 min-h-[44px] min-w-[44px] xl:min-h-0 xl:min-w-0 rounded-none border transition-[color,background-color,border-color,box-shadow] focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${theme.btnSelected}`}
                 title="Switch protocol"
               >
                 <span>{protocol?.protocolLabel || `Protocol ${protocolIndex + 1}`}</span>
@@ -124,14 +127,14 @@ const DrugRow = React.memo(({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <button
-          type="button"
+        <CompactActionButton
           onClick={() => onRemove(index)}
-          className={`shrink-0 text-muted-foreground/60 hover:text-destructive transition-colors p-1 ${row.drugName === 'Other' ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
-          title="Remove drug"
+          label={`Remove ${row.drugName} from testing panel`}
+          tooltip="Remove drug"
+          className={`shrink-0 p-2 -m-1 xl:m-0 xl:p-1 ${row.drugName === 'Other' ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
         >
           <X className="w-4 h-4" />
-        </button>
+        </CompactActionButton>
       </div>
 
       {/* Custom drug protocol configuration */}
@@ -140,7 +143,7 @@ const DrugRow = React.memo(({
           <div className="flex items-center gap-2">
             <span className="section-label shrink-0 w-7">SPT</span>
             <Input
-              className="h-7 text-xs flex-1 rounded-none font-mono"
+              className="h-11 xl:h-7 text-xs flex-1 rounded-none font-mono"
               placeholder="Neat concentration (e.g. 10mg/mL)..."
               value={row.customSptConcentration || ''}
               onChange={(e) => onUpdate(index, 'customSptConcentration', e.target.value)}
@@ -151,21 +154,24 @@ const DrugRow = React.memo(({
             {(row.customIdtSteps ?? []).map((step, si) => (
               <div key={si} className="flex items-center gap-1.5">
                 <Input
-                  className="h-7 text-xs flex-1 rounded-none font-mono"
+                  className="h-11 xl:h-7 text-xs flex-1 rounded-none font-mono"
                   placeholder="Ratio (e.g. 1:100)"
                   value={step.ratio}
                   onChange={(e) => onUpdate(index, `customIdtStep_ratio_${si}`, e.target.value)}
+                  aria-label={`${row.drugName} IDT dilution step ${si + 1} ratio`}
                 />
                 <Input
-                  className="h-7 text-xs flex-1 rounded-none font-mono"
+                  className="h-11 xl:h-7 text-xs flex-1 rounded-none font-mono"
                   placeholder="Conc. (e.g. 0.1mg/mL)"
                   value={step.concentration}
                   onChange={(e) => onUpdate(index, `customIdtStep_concentration_${si}`, e.target.value)}
+                  aria-label={`${row.drugName} IDT dilution step ${si + 1} concentration`}
                 />
                 <button
                   type="button"
                   onClick={() => onRemoveCustomIdtStep(index, si)}
-                  className="shrink-0 text-muted-foreground/60 hover:text-destructive transition-colors"
+                  aria-label={`Remove ${row.drugName} IDT dilution step ${si + 1}`}
+                  className="shrink-0 text-muted-foreground/60 hover:text-destructive transition-colors p-2 -m-1 min-h-[44px] min-w-[44px] flex items-center justify-center xl:min-h-0 xl:min-w-0 xl:m-0 xl:p-0.5"
                   title="Remove step"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -175,7 +181,7 @@ const DrugRow = React.memo(({
             <button
               type="button"
               onClick={() => onAddCustomIdtStep(index)}
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors min-h-[44px] xl:min-h-0 w-fit"
             >
               <Plus className="w-3 h-3" /> Add IDT dilution step
             </button>
@@ -251,8 +257,13 @@ const DrugRow = React.memo(({
       </div>
 
       {/* Notes */}
+      <label htmlFor={`drug-notes-${index}`} className="sr-only">
+        {`Notes for ${row.drugName === 'Other' ? (row.customName || 'custom drug') : row.drugName}`}
+      </label>
       <Input
-        className="h-8 text-xs text-foreground placeholder:text-muted-foreground rounded-none"
+        id={`drug-notes-${index}`}
+        aria-label={`Notes for ${row.drugName === 'Other' ? (row.customName || 'custom drug') : row.drugName}`}
+        className="h-11 xl:h-8 text-xs text-foreground placeholder:text-muted-foreground rounded-none"
         placeholder="Notes..."
         value={row.notes || ''}
         onChange={(e) => onUpdate(index, 'notes', e.target.value)}
