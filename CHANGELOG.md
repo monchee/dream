@@ -1,3 +1,15 @@
+## [0.90.1] — 2026-10-06 (The Release Guard)
+
+Summary: Tooling release. Version and changelog bumps are now enforced by CI and the build itself, closing the gap where three shipped merges (this release's own safety pass and redesigns included) went out still carrying the previous version. No application behaviour changed.
+
+### Added
+- **A release guard on every pull request.** CI's new `release` job fails a PR into `main` unless `package.json` is bumped relative to `main` and a matching `CHANGELOG.md` entry exists. The `skip-release` label exempts a stacked tooling change.
+- **A release guard on every build and deploy.** The `prebuild` hook runs `npm run check:release` before the changelog sync — a version without its changelog entry cannot be built, previewed, or deployed. `ALLOW_UNRELEASED=1` bypasses it for exceptional builds.
+- **`npm run check:release`** as a standalone command, with `--against <git-ref>` for the bump comparison.
+
+### Changed
+- **CONTRIBUTING.md now documents the enforcement**, not just the checklist: what fails, why, and the two escape hatches (label and environment variable).
+
 ## [0.90.0] — 2026-10-06 (A Safer, Quieter Workbench)
 
 Summary: A full safety-and-redesign pass from the 2026-10-05 GPT design audit, executed through plan 003. Every clinical status colour now meets WCAG AA in both themes, every bedside field meets the 44px touch standard, printed clinical sheets follow one monochrome policy with a real multi-page pagination test, and the app's font loads locally so offline clinics get a stable first paint. Four audited redesigns reshape the daily surfaces: a two-speed testing cockpit that leads with recording, a patient identity rail that can never scroll a name off-screen, risk-graded output actions that state where data goes before you click, and a quiet lock station that trades the animated backdrop (introduced across v0.79.x and tuned in v0.79.17) for a flat, fast privacy screen. Clinical protocol values, thresholds, validation rules, draft persistence, PIN semantics, and research payloads are unchanged and covered by new regression tests.

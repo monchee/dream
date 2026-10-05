@@ -1,5 +1,18 @@
 [
   {
+    "version": "v0.90.1",
+    "codename": "The Release Guard",
+    "date": "6 October 2026",
+    "summary": "Tooling release. Version and changelog bumps are now enforced by CI and the build itself, closing the gap where three shipped merges (this release's own safety pass and redesigns included) went out still carrying the previous version. No application behaviour changed.",
+    "highlight": false,
+    "changes": [
+      "A release guard on every pull request. CI's new `release` job fails a PR into `main` unless `package.json` is bumped relative to `main` and a matching `CHANGELOG.md` entry exists. The `skip-release` label exempts a stacked tooling change.",
+      "A release guard on every build and deploy. The `prebuild` hook runs `npm run check:release` before the changelog sync \u2014 a version without its changelog entry cannot be built, previewed, or deployed. `ALLOW_UNRELEASED=1` bypasses it for exceptional builds.",
+      "`npm run check:release` as a standalone command, with `--against <git-ref>` for the bump comparison.",
+      "CONTRIBUTING.md now documents the enforcement, not just the checklist: what fails, why, and the two escape hatches (label and environment variable)."
+    ]
+  },
+  {
     "version": "v0.90.0",
     "codename": "A Safer, Quieter Workbench",
     "date": "6 October 2026",

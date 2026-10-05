@@ -1,13 +1,14 @@
 {
   "name": "dream",
   "private": true,
-  "version": "0.90.0",
+  "version": "0.90.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/generate-changelog.mjs",
+    "prebuild": "node scripts/check-release.mjs && node scripts/generate-changelog.mjs",
     "build": "vite build",
     "changelog:sync": "node scripts/generate-changelog.mjs",
+    "check:release": "node scripts/check-release.mjs",
     "protocols:sync": "node scripts/sync-protocols.mjs",
     "protocols:generate": "node scripts/generate-drug-masterlist.mjs",
     "preview": "vite preview",
