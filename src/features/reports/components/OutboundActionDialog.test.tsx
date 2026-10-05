@@ -32,26 +32,17 @@ describe('OutboundActionDialog', () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it('restores focus to the triggering control on close (R3)', async () => {
+  it('restores focus to the triggering control when the dialog unmounts on close (R3)', async () => {
     const onOpenChange = vi.fn();
+    // Production sequence: the trigger exists and holds focus BEFORE the
+    // dialog appears, then the dialog is added, then closed by unmounting it.
     const { rerender } = render(
-      <>
-        <button type="button" id="email-trigger">Send via Email</button>
-        <OutboundActionDialog
-          open={false}
-          onOpenChange={onOpenChange}
-          actionType="email"
-          artifactTitle="Clinical Report"
-          workContext={mockContext}
-          onConfirm={vi.fn()}
-        />
-      </>
+      <button type="button" id="email-trigger">Send via Email</button>
     );
 
-    // Simulate the flow: focus the trigger, open the dialog, then close it.
-    const trigger = document.getElementById('email-trigger') as HTMLButtonElement;
-    trigger.focus();
-    expect(document.activeElement).toBe(trigger);
+    const el = document.getElementById('email-trigger') as HTMLButtonElement;
+    el.focus();
+    expect(document.activeElement).toBe(el);
 
     rerender(
       <>
@@ -70,41 +61,22 @@ describe('OutboundActionDialog', () => {
     rerender(
       <>
         <button type="button" id="email-trigger">Send via Email</button>
-        <OutboundActionDialog
-          open={false}
-          onOpenChange={onOpenChange}
-          actionType="email"
-          artifactTitle="Clinical Report"
-          workContext={mockContext}
-          onConfirm={vi.fn()}
-        />
       </>
     );
 
-    // Focus restoration happens on the next animation frame
+    // Focus restoration happens on the next animation frame after unmount
     await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-    expect(document.activeElement).toBe(trigger);
+    expect(document.activeElement).toBe(el);
   });
 
   it('moves focus to the research status banner when the trigger was removed (R3)', async () => {
     const onOpenChange = vi.fn();
     const { rerender } = render(
-      <>
-        <button type="button" id="research-trigger">Save to Research Database</button>
-        <OutboundActionDialog
-          open={false}
-          onOpenChange={onOpenChange}
-          actionType="research"
-          artifactTitle="Clinical Report"
-          workContext={mockContext}
-          onConfirm={vi.fn()}
-        />
-      </>
+      <button type="button" id="research-trigger">Save to Research Database</button>
     );
 
-    // Real flow: trigger focused, then the dialog opens
-    const trigger = document.getElementById('research-trigger') as HTMLButtonElement;
-    trigger.focus();
+    const el = document.getElementById('research-trigger') as HTMLButtonElement;
+    el.focus();
 
     rerender(
       <>
@@ -120,18 +92,11 @@ describe('OutboundActionDialog', () => {
       </>
     );
 
-    // Successful submission replaces the trigger with a status banner before close
+    // Successful submission replaces the trigger with a status banner, then
+    // the dialog unmounts — production's conditional-render close path.
     rerender(
       <>
         <div id="research-submission-status" tabIndex={-1}>Submitted to Research Database</div>
-        <OutboundActionDialog
-          open={false}
-          onOpenChange={onOpenChange}
-          actionType="research"
-          artifactTitle="Clinical Report"
-          workContext={mockContext}
-          onConfirm={vi.fn()}
-        />
       </>
     );
 

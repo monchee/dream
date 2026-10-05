@@ -92,9 +92,12 @@ export function OutboundActionDialog({
   useEffect(() => {
     if (open) {
       returnFocusRef.current = document.activeElement as HTMLElement | null;
-      return;
+      // Production closes by unmounting this component (SummaryScreen renders
+      // it conditionally), so the cleanup is the reliable restoration path.
+      return () => restoreFocusToTrigger();
     }
     restoreFocusToTrigger();
+    return undefined;
   }, [open]);
 
   const patientName =
