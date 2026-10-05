@@ -51,18 +51,13 @@ export const AppTopBar: React.FC<AppTopBarProps> = ({
       aria-label="Application header"
       className="bg-card text-card-foreground border-b border-border xl:border-t-[3px] xl:border-t-primary no-print"
     >
-      {/* Phone view (<768px, md:hidden): Single compact row of ~56px */}
+      {/* Phone view (<768px, md:hidden): controls row + dedicated title row */}
       <div className="md:hidden bg-masthead text-masthead-foreground border-b border-masthead-border pt-[env(safe-area-inset-top)]">
         <div className="px-3 sm:px-4 min-h-[56px] flex items-center justify-between gap-2 min-w-0">
-          {/* Left: Drawer trigger + Page Title + Status badges */}
+          {/* Left: Drawer trigger + Status badges (title has its own row below) */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {drawerTrigger}
-            <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-              {title && (
-                <h1 className="text-base font-bold tracking-tight text-white leading-tight break-words truncate m-0">
-                  {title}
-                </h1>
-              )}
+            <div className="flex items-center gap-1.5 min-w-0">
               {isTestingDraftDirty && (
                 <ChromeStatusBadge variant="draft" size="compact" />
               )}
@@ -83,6 +78,15 @@ export const AppTopBar: React.FC<AppTopBarProps> = ({
             <ThemeToggleButton variant="masthead" />
           </div>
         </div>
+
+        {/* Dedicated title row: wraps, never truncates (R2 identity-rail spec) */}
+        {title && (
+          <div className="px-3 sm:px-4 pb-2">
+            <h1 className="text-base font-bold tracking-tight text-white leading-snug break-words m-0">
+              {title}
+            </h1>
+          </div>
+        )}
       </div>
 
       {/* Tablet view (768px - 1279px, hidden md:flex md:flex-col xl:hidden): Richer 2-row layout */}

@@ -189,6 +189,10 @@ describe('TestingLogForm (Indexed Workflow)', () => {
       render(<TestWrapper initialData={mockFormData} props={mockProps} />);
       fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
 
+      // R1 two-speed cockpit: the plan lane starts collapsed when drugs are
+      // already selected — open it before selecting more.
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+
       const suxButton = screen.getByText('Suxamethonium');
       fireEvent.click(suxButton);
 
@@ -215,6 +219,9 @@ describe('TestingLogForm (Indexed Workflow)', () => {
     it('clears all selected drugs when Clear All is clicked', async () => {
       render(<TestWrapper initialData={mockFormData} props={mockProps} />);
       fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      // R1 two-speed cockpit: open the plan lane to reach the drug chips.
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
 
       const rocuroniumBtn = screen.getByRole('button', { name: 'Rocuronium' });
       expect(rocuroniumBtn).toHaveAttribute('aria-pressed', 'true');

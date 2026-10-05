@@ -442,11 +442,14 @@ test.describe('Accessibility Tests', () => {
     await expect(popoverContent).toContainText('Patient Details');
     await expect(popoverContent).toContainText('CHEN');
 
-    // Verify popover does not increase sticky stack height
+    // Verify popover does not increase sticky stack height. R2 identity rail:
+    // the stack is header (controls + dedicated title row) + two-row rail,
+    // budgeted at 200px — generous enough for the rail, tight enough to catch
+    // runaway stacking.
     const stickyChrome = page.locator('.sticky.top-0');
     const chromeBox = await stickyChrome.boundingBox();
     expect(chromeBox).not.toBeNull();
-    expect(chromeBox!.height).toBeLessThan(120);
+    expect(chromeBox!.height).toBeLessThan(200);
 
     // Close popover with Escape
     await page.keyboard.press('Escape');
@@ -719,60 +722,31 @@ test.describe('Automated Accessibility Scans', () => {
     expect(violations.length).toBe(0);
   });
 
-  base('password gate ambient background layers are hidden from assistive technology', async ({ page, baseURL }) => {
+  base('password gate lock station carries no decorative background layers (R4)', async ({ page, baseURL }) => {
     await page.goto(baseURL ?? '/');
     await page.waitForSelector('h1', { timeout: 15000 });
 
-    const grid = page.locator('.lock-station-grid');
-    const ambient1 = page.locator('.ambient-light-field-1');
-    const ambient2 = page.locator('.ambient-light-field-2');
+    // R4 quiet lock station: the ambient fields and hairline grid are removed
+    // entirely — fewer decorative nodes, nothing to hide from assistive tech.
+    await expect(page.locator('.lock-station-grid')).toHaveCount(0);
+    await expect(page.locator('.ambient-light-field-1')).toHaveCount(0);
+    await expect(page.locator('.ambient-light-field-2')).toHaveCount(0);
 
-    await expect(grid).toHaveAttribute('aria-hidden', 'true');
-    await expect(ambient1).toHaveAttribute('aria-hidden', 'true');
-    await expect(ambient2).toHaveAttribute('aria-hidden', 'true');
+    // The clinical lock-station frame itself remains
+    await expect(page.locator('.shadow-2xl')).toBeAttached();
   });
 
-  base('password gate background layers have active animations under normal motion', async ({ page, baseURL }) => {
-    await page.goto(baseURL ?? '/');
-    await page.waitForSelector('h1', { timeout: 15000 });
-
-    const grid = page.locator('.lock-station-grid');
-    const ambient1 = page.locator('.ambient-light-field-1');
-    const ambient2 = page.locator('.ambient-light-field-2');
-
-    await expect(grid).toBeAttached();
-    await expect(ambient1).toBeAttached();
-    await expect(ambient2).toBeAttached();
-
-    const gridAnimation = await grid.evaluate((el) => window.getComputedStyle(el).animationName);
-    const ambient1Animation = await ambient1.evaluate((el) => window.getComputedStyle(el).animationName);
-    const ambient2Animation = await ambient2.evaluate((el) => window.getComputedStyle(el).animationName);
-
-    expect(gridAnimation).not.toBe('none');
-    expect(ambient1Animation).not.toBe('none');
-    expect(ambient2Animation).not.toBe('none');
-  });
-
-  base('password gate ambient and grid background layers respect prefers-reduced-motion', async ({ page, baseURL }) => {
+  base('password gate content entrance stays animation-free under reduced motion (R4)', async ({ page, baseURL }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(baseURL ?? '/');
     await page.waitForSelector('h1', { timeout: 15000 });
 
-    const grid = page.locator('.lock-station-grid');
-    const ambient1 = page.locator('.ambient-light-field-1');
-    const ambient2 = page.locator('.ambient-light-field-2');
-
-    await expect(grid).toBeAttached();
-    await expect(ambient1).toBeAttached();
-    await expect(ambient2).toBeAttached();
-
-    const gridAnimation = await grid.evaluate((el) => window.getComputedStyle(el).animationName);
-    const ambient1Animation = await ambient1.evaluate((el) => window.getComputedStyle(el).animationName);
-    const ambient2Animation = await ambient2.evaluate((el) => window.getComputedStyle(el).animationName);
-
-    expect(gridAnimation).toBe('none');
-    expect(ambient1Animation).toBe('none');
-    expect(ambient2Animation).toBe('none');
+    // No decorative layers exist to animate; the content frame must be static
+    await expect(page.locator('.lock-station-grid')).toHaveCount(0);
+    const frame = page.locator('.shadow-2xl');
+    await expect(frame).toBeAttached();
+    const frameAnimation = await frame.evaluate((el) => window.getComputedStyle(el).animationName);
+    expect(frameAnimation).toBe('none');
   });
 
   test('axe-core scan on populated testing session', async ({ page }) => {

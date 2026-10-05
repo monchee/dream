@@ -9,6 +9,7 @@ import {
   Loader2,
   LogOut,
   Mail,
+  MonitorCheck,
   Plus,
   Printer,
   User,
@@ -208,40 +209,78 @@ function SummaryScreenContent({
         />
       )}
 
-      {/* Output Section */}
-      <div className="border border-border bg-card p-4 space-y-3 no-print mt-4 rounded-none">
+      {/* Output Section — risk-graded by data boundary (R3): local first, then external */}
+      <div className="border border-border bg-card p-4 space-y-4 no-print mt-4 rounded-none">
         <h3 className="section-label">Output this document:</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Button
-            onClick={() => setActiveOutboundAction('print')}
-            size="lg"
-            className="py-5 h-auto text-sm rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
-          >
-            <Printer className="w-4 h-4 mr-2" /> Print (Primary)
-          </Button>
-          <Button
-            onClick={() => setActiveOutboundAction('copy')}
-            size="lg"
-            variant="outline"
-            className="py-5 h-auto text-sm rounded-none"
-          >
-            <Copy className="w-4 h-4 mr-2" /> Copy as Text
-          </Button>
+
+        {/* Tier 1 — Local clinical output (stays on this device) */}
+        <div
+          role="group"
+          aria-label="Local output — stays on this device"
+          className="space-y-2"
+        >
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <MonitorCheck className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            Stays on this device — no network destination
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              onClick={() => setActiveOutboundAction('print')}
+              size="lg"
+              aria-label="Print locally (stays on this device)"
+              className="py-5 h-auto text-sm rounded-none bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
+            >
+              <Printer className="w-4 h-4 mr-2" /> Print (Primary)
+            </Button>
+            <Button
+              onClick={() => setActiveOutboundAction('copy')}
+              size="lg"
+              variant="outline"
+              aria-label="Copy as text locally (stays on this device)"
+              className="py-5 h-auto text-sm rounded-none"
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copy as Text
+            </Button>
+          </div>
+        </div>
+
+        {/* Tier 2 — External destination (leaves this device) */}
+        <div
+          role="group"
+          aria-label="External destination — leaves this device"
+          className="space-y-2 border-t border-border pt-3"
+        >
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>
+              Leaves this device — sent to{' '}
+              <span className="font-mono font-semibold text-foreground">SLHD-RPA-allergynurses@health.nsw.gov.au</span>
+            </span>
+          </p>
           <Button
             onClick={() => setActiveOutboundAction('email')}
             size="lg"
             variant="outline"
-            className="py-5 h-auto text-sm rounded-none"
+            aria-label="Send via email to the allergy nurses mailbox (leaves this device)"
+            className="w-full py-4 h-auto text-sm rounded-none"
           >
             <Mail className="w-4 h-4 mr-2" /> Send via Email
           </Button>
         </div>
       </div>
 
-      {/* Research Section */}
+      {/* Research Section — Tier 3: separate de-identified research submission */}
       {research.isAvailable && (
-        <div className="border border-border bg-card p-4 space-y-3 no-print rounded-none">
+        <div
+          role="group"
+          aria-label="Research submission — de-identified payload only"
+          className="border border-border bg-card p-4 space-y-3 no-print rounded-none"
+        >
           <h3 className="section-label">Research Database:</h3>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            Only the de-identified research payload is transmitted — no patient identifiers
+          </p>
           {research.isSubmitted ? (
             <div className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none">
               <CheckCircle2 className="w-4 h-4" /> Submitted to Research Database
@@ -252,6 +291,7 @@ function SummaryScreenContent({
               disabled={research.isSubmitting}
               size="lg"
               variant="outline"
+              aria-label="Save de-identified data to the research database"
               className="w-full py-4 h-auto text-sm rounded-none border-dashed"
             >
               {research.isSubmitting ? (

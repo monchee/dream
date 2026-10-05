@@ -14,7 +14,7 @@ describe('PasswordGate', () => {
     vi.useRealTimers();
   });
 
-  it('renders complete lock-station structure including landmarks, headings, ambient layers, and controls', () => {
+  it('renders complete lock-station structure including landmarks, headings, and controls with no decorative ambience', () => {
     const { container } = render(
       <PasswordGate>
         <div>Protected Clinical Workspace</div>
@@ -25,16 +25,11 @@ describe('PasswordGate', () => {
     const mainElement = screen.getByRole('main', { name: 'Screen lock' });
     expect(mainElement).toBeInTheDocument();
 
-    // Decorative architectural grid and ambient layers exist and are hidden from assistive technologies
-    const grid = container.querySelector('.lock-station-grid');
-    const ambient1 = container.querySelector('.ambient-light-field-1');
-    const ambient2 = container.querySelector('.ambient-light-field-2');
-    expect(grid).toBeInTheDocument();
-    expect(grid).toHaveAttribute('aria-hidden', 'true');
-    expect(ambient1).toBeInTheDocument();
-    expect(ambient1).toHaveAttribute('aria-hidden', 'true');
-    expect(ambient2).toBeInTheDocument();
-    expect(ambient2).toHaveAttribute('aria-hidden', 'true');
+    // R4 quiet lock station: the decorative ambient layers and grid are gone
+    expect(container.querySelector('.lock-station-grid')).not.toBeInTheDocument();
+    expect(container.querySelector('.ambient-light-field-1')).not.toBeInTheDocument();
+    expect(container.querySelector('.ambient-light-field-2')).not.toBeInTheDocument();
+    expect(container.querySelector('.ambient-light-field-1, .ambient-light-field-2, .lock-station-grid')).toBeNull();
 
     // Central lock-station frame carries the 3px masthead-edge identity edge
     const frame = container.querySelector('.shadow-2xl');
