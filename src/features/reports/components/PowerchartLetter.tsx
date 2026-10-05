@@ -62,7 +62,7 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
 
       <CardContent className="p-4 md:p-8 lg:p-12 space-y-8 print:p-2 print:space-y-1.5">
         {/* Patient Details */}
-        <div className="bg-muted border border-border rounded-none p-4 print:bg-white print:border-slate-300">
+        <div className="bg-muted border border-border rounded-none p-4 print:bg-white print-rule">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 print:grid-cols-2 print:gap-2">
           <div>
             <p className="text-xs uppercase font-semibold text-muted-foreground tracking-wider print:text-[9px]">Patient Name</p>
@@ -106,7 +106,7 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
         </div>
 
         {/* Narrative */}
-        <div className="section-card bg-card border border-border rounded-none p-4 space-y-4 text-sm leading-relaxed text-foreground/90 print:bg-white print:border-slate-300 print:p-2 print:text-xs print:space-y-1.5">
+        <div className="section-card bg-card border border-border rounded-none p-4 space-y-4 text-sm leading-relaxed text-foreground/90 print:bg-white print-rule print:p-2 print:text-xs print:space-y-1.5">
           <div className="max-w-prose space-y-4 print:space-y-1.5">
           {patient && patient.id !== 'manual' && (
             <p>
@@ -139,7 +139,7 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
         </div>
 
         {/* Results Summary (3B restyle) */}
-        <div className="section-card bg-muted border border-border rounded-none p-4 space-y-4 print:bg-white print:border-slate-300 print:p-1.5 print:space-y-1">
+        <div className="section-card bg-muted border border-border rounded-none p-4 space-y-4 print:bg-white print-rule print:p-1.5 print:space-y-1">
           <h3 className="font-bold text-sm uppercase tracking-wider border-b-2 border-primary pb-2 text-foreground print:text-xs print:pb-0.5">Results</h3>
           {posResults.length > 0 && (
             <div className="space-y-2">
@@ -175,7 +175,7 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
 
         {/* IV Challenge (3E) */}
         {data.proceedToChallenge && (
-          <div className="section-card bg-muted border border-border rounded-none p-4 print:bg-white print:border-slate-300 print:p-1.5">
+          <div className="section-card bg-muted border border-border rounded-none p-4 print:bg-white print-rule print:p-1.5">
             <h3 className="font-bold text-sm uppercase tracking-wider border-b-2 border-primary pb-2 mb-3 text-foreground print:text-xs print:pb-0.5 print:mb-1">Drug Challenge</h3>
             <p className="text-sm print:text-xs">
               {(() => {
@@ -193,7 +193,7 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
         )}
 
         {/* Recommendations (3D) */}
-        <div className="section-card bg-muted border border-border rounded-none p-4 space-y-3 print:bg-white print:border-slate-300 print:p-1.5 print:space-y-1">
+        <div className="section-card bg-muted border border-border rounded-none p-4 space-y-3 print:bg-white print-rule print:p-1.5 print:space-y-1">
           <h3 className="font-bold text-sm uppercase tracking-wider border-b-2 border-primary pb-2 text-foreground print:text-xs print:pb-0.5">Recommendations</h3>
           {noAllergyMessage ? (
             <p className="text-foreground/80 text-sm print:text-xs">{noAllergyMessage}</p>
@@ -201,7 +201,7 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
             <>
               <div className="space-y-2">
                 {avoidList.map(drug => (
-                  <p key={drug} className="font-bold text-red-700 dark:text-red-400 text-sm uppercase print:text-xs print:text-black">AVOID {drug}</p>
+                  <p key={drug} className="font-bold text-status-danger text-sm uppercase print:text-xs print:text-black">AVOID {drug}</p>
                 ))}
               </div>
               <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 print:text-xs">

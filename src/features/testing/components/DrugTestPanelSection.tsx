@@ -63,7 +63,7 @@ export function DrugTestPanelSection({
               variant="ghost"
               size="sm"
               onClick={onClearPanel}
-              className="text-xs text-muted-foreground hover:text-destructive h-6 px-2 rounded-none font-normal"
+              className="text-xs text-muted-foreground hover:text-destructive min-h-[44px] xl:min-h-0 xl:h-6 px-2 rounded-none font-normal"
               title="Clear all selected drugs"
             >
               Clear All
@@ -77,12 +77,14 @@ export function DrugTestPanelSection({
               value={drugFilter}
               onChange={e => setDrugFilter(e.target.value)}
               placeholder="Filter drugs..."
-              className="h-8 pl-8 pr-8 text-xs rounded-none bg-background text-foreground"
+              className="h-11 xl:h-8 pl-8 pr-11 xl:pr-8 text-xs rounded-none bg-background text-foreground"
             />
             {drugFilter && (
               <button
+                type="button"
                 onClick={() => setDrugFilter('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                aria-label="Clear drug filter"
+                className="absolute right-1.5 xl:right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[44px] min-w-[44px] xl:min-h-0 xl:min-w-0 flex items-center justify-center"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

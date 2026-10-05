@@ -216,7 +216,7 @@ describe('TestingLogForm (Indexed Workflow)', () => {
       render(<TestWrapper initialData={mockFormData} props={mockProps} />);
       fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
 
-      const rocuroniumBtn = screen.getByRole('button', { name: /Rocuronium/i });
+      const rocuroniumBtn = screen.getByRole('button', { name: 'Rocuronium' });
       expect(rocuroniumBtn).toHaveAttribute('aria-pressed', 'true');
 
       const clearAllButton = screen.getByRole('button', { name: /Clear All/i });

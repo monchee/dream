@@ -428,7 +428,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                     value={reactionDate ? reactionDate.slice(0, 10) : ''}
                                     max={today}
                                     onChange={e => setReactionDate(e.target.value)}
-                                    className="h-8 w-auto"
+                                    className="h-11 xl:h-8 w-auto"
                                 />
                             </div>
                             <div className="flex items-center gap-2 ml-auto">
@@ -466,9 +466,10 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                             {documentsToChase.other && (
                                 <Input
                                     placeholder="Specify..."
+                                    aria-label="Specify other document to chase"
                                     value={documentsToChase.otherText}
                                     onChange={e => setDocumentsToChase(prev => ({ ...prev, otherText: e.target.value }))}
-                                    className="flex-1 min-w-[160px] h-8"
+                                    className="flex-1 min-w-[160px] h-11 xl:h-8"
                                 />
                             )}
                         </div>
@@ -482,7 +483,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                               variant="ghost"
                               size="sm"
                               onClick={() => setConfirmClearOpen(true)}
-                              className="text-xs text-muted-foreground hover:text-destructive h-6 px-2 rounded-none"
+                              className="text-xs text-muted-foreground hover:text-destructive min-h-[44px] xl:min-h-0 xl:h-6 px-2 rounded-none"
                               title="Clear all selected drugs"
                               disabled={selectedDrugs.length === 0 && customDrugs.length === 0}
                             >
@@ -495,12 +496,15 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                         value={drugFilter}
                         onChange={e => setDrugFilter(e.target.value)}
                         placeholder="Filter drugs..."
-                        className="h-8 pl-8 pr-8 text-xs rounded-none"
+                        aria-label="Filter drugs"
+                        className="h-11 xl:h-8 pl-8 pr-11 xl:pr-8 text-xs rounded-none"
                       />
                       {drugFilter && (
                         <button
+                          type="button"
                           onClick={() => setDrugFilter('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          aria-label="Clear drug filter"
+                          className="absolute right-1 xl:right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] xl:min-h-0 xl:min-w-0 flex items-center justify-center"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -530,9 +534,10 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                             {category}
                                             {hasActiveSelection && <span className={`flex h-1.5 w-1.5 rounded-none ${theme.pulse} animate-pulse`}></span>}
                                         </h4>
-                                        <button 
+                                        <button
+                                            type="button"
                                             onClick={(e) => { e.stopPropagation(); toggleCategory(categoryDrugs); }}
-                                            className={`text-xs hover:underline font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${hasActiveSelection ? theme.actionText : 'text-muted-foreground hover:text-foreground'}`}
+                                            className={`text-xs hover:underline font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[44px] xl:min-h-0 inline-flex items-center ${hasActiveSelection ? theme.actionText : 'text-muted-foreground hover:text-foreground'}`}
                                         >
                                             {allCategorySelected ? 'Select None' : 'Select All'}
                                         </button>
@@ -549,7 +554,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                                 key={drug}
                                                 onClick={() => toggleDrug(drug)}
                                                 aria-pressed={selectedDrugs.includes(drug)}
-                                                className={`text-xs px-2.5 py-1.5 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
+                                                className={`text-xs px-2.5 py-1.5 min-h-[44px] xl:min-h-0 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
                                                 selectedDrugs.includes(drug)
                                                 ? theme.btnSelected
                                                 : `bg-card text-muted-foreground border-border hover:bg-muted/50 ${theme.btnHover}`
@@ -616,7 +621,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                     >
                                       <SelectTrigger
                                         id={`protocol-${drug}`}
-                                        className={`h-8 text-xs rounded-none bg-background ${
+                                        className={`h-11 xl:h-8 text-xs rounded-none bg-background ${
                                           isInvalid ? 'border-status-danger text-status-danger ring-1 ring-status-danger/30' : ''
                                         }`}
                                       >
@@ -671,7 +676,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                     size="sm"
                                     variant="outline"
                                     onClick={addRedcapOtherAsCustomDrug}
-                                    className="h-8 shrink-0 border-status-warning/50 text-status-warning hover:bg-status-warning/15 rounded-none"
+                                    className="min-h-[44px] xl:h-8 shrink-0 border-status-warning/50 text-status-warning hover:bg-status-warning/15 rounded-none"
                                   >
                                     <Plus className="w-3.5 h-3.5 mr-1.5" />
                                     Add as custom item
@@ -707,7 +712,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                         <button
                                             type="button"
                                             onClick={() => removeCustomDrug(entry.name)}
-                                            className="border border-l-0 border-border px-2 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive rounded-none"
+                                            className="border border-l-0 border-border px-2 min-h-[44px] min-w-[44px] xl:min-h-0 xl:min-w-0 inline-flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive rounded-none"
                                             aria-label={`Remove custom drug ${entry.name}`}
                                             title={`Remove ${entry.name}`}
                                         >
@@ -723,8 +728,9 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground shrink-0 w-7">SPT</span>
                                         <Input
-                                            className="h-7 text-xs flex-1 rounded-none font-mono"
+                                            className="h-11 xl:h-7 text-xs flex-1 rounded-none font-mono"
                                             placeholder="Neat concentration (e.g. 10mg/mL)..."
+                                            aria-label={`${entry.name} SPT neat concentration`}
                                             value={entry.sptConcentration || ''}
                                             onChange={ev => updateCustomEntry(entry.name, 'sptConcentration', ev.target.value)}
                                         />
@@ -733,14 +739,14 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                                         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">IDT Dilutions</div>
                                         {(entry.idtSteps ?? []).map((step, si) => (
                                             <div key={si} className="flex items-center gap-1.5">
-                                                <Input className="h-7 text-xs flex-1 rounded-none font-mono" placeholder="Ratio (e.g. 1:100)" value={step.ratio} onChange={ev => updateCustomEntryStep(entry.name, si, 'ratio', ev.target.value)} />
-                                                <Input className="h-7 text-xs flex-1 rounded-none font-mono" placeholder="Conc. (e.g. 0.1mg/mL)" value={step.concentration} onChange={ev => updateCustomEntryStep(entry.name, si, 'concentration', ev.target.value)} />
-                                                <button onClick={() => removeCustomEntryIdtStep(entry.name, si)} className="shrink-0 text-muted-foreground/50 hover:text-destructive transition-colors" title="Remove step">
+                                                <Input className="h-11 xl:h-7 text-xs flex-1 rounded-none font-mono" placeholder="Ratio (e.g. 1:100)" aria-label={`${entry.name} IDT dilution step ${si + 1} ratio`} value={step.ratio} onChange={ev => updateCustomEntryStep(entry.name, si, 'ratio', ev.target.value)} />
+                                                <Input className="h-11 xl:h-7 text-xs flex-1 rounded-none font-mono" placeholder="Conc. (e.g. 0.1mg/mL)" aria-label={`${entry.name} IDT dilution step ${si + 1} concentration`} value={step.concentration} onChange={ev => updateCustomEntryStep(entry.name, si, 'concentration', ev.target.value)} />
+                                                <button type="button" onClick={() => removeCustomEntryIdtStep(entry.name, si)} aria-label={`Remove ${entry.name} IDT dilution step ${si + 1}`} className="shrink-0 text-muted-foreground/50 hover:text-destructive transition-colors p-2 -m-1 min-h-[44px] min-w-[44px] flex items-center justify-center xl:min-h-0 xl:min-w-0 xl:m-0 xl:p-0.5" title="Remove step">
                                                     <X className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
                                         ))}
-                                        <button onClick={() => addCustomEntryIdtStep(entry.name)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+                                        <button type="button" onClick={() => addCustomEntryIdtStep(entry.name)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors min-h-[44px] xl:min-h-0 w-fit">
                                             <Plus className="w-3 h-3" /> Add IDT dilution step
                                         </button>
                                     </div>

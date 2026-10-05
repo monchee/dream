@@ -69,7 +69,7 @@ const ClinicalReport: React.FC<ClinicalReportProps> = ({ data, activeReportSaved
       <CardContent className="p-4 md:p-8 lg:p-12 space-y-8 print:p-3 print:space-y-3">
          
          {/* Patient Details */}
-         <div className="section-card bg-muted border border-border rounded-none p-4 print:bg-white print:border-slate-300">
+         <div className="section-card bg-muted border border-border rounded-none p-4 print:bg-white print-rule">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 print:grid-cols-2 print:gap-2">
             <div>
                <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold block mb-1 print:mb-0.5">Patient Name</label>
@@ -97,7 +97,7 @@ const ClinicalReport: React.FC<ClinicalReportProps> = ({ data, activeReportSaved
             </h3>
             
             {/* Controls */}
-            <div className="bg-muted border border-border rounded-none p-3 text-sm mb-4 print:bg-white print:border-slate-300 print:p-2 print:mb-2 print:text-xs">
+            <div className="bg-muted border border-border rounded-none p-3 text-sm mb-4 print:bg-white print-rule print:p-2 print:mb-2 print:text-xs">
                <div className="font-semibold mb-2 block md:inline md:mr-2">Controls (mm):</div>
                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:inline-flex md:gap-4">
                    <span>Histamine SPT: <strong>{controlValue(data.controls?.histamineSpt)}</strong></span>
@@ -227,7 +227,7 @@ const ClinicalReport: React.FC<ClinicalReportProps> = ({ data, activeReportSaved
              <div className="space-y-3 print:space-y-1">
                <div className="space-y-2">
                  {avoidList.map(drug => (
-                  <p key={drug} className="font-bold text-red-700 dark:text-red-400 text-sm uppercase print:text-xs print:text-black print:font-bold">AVOID {drug}</p>
+                  <p key={drug} className="font-bold text-status-danger text-sm uppercase print:text-xs print:text-black print:font-bold">AVOID {drug}</p>
                  ))}
                </div>
                <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 print:text-xs">
@@ -241,24 +241,24 @@ const ClinicalReport: React.FC<ClinicalReportProps> = ({ data, activeReportSaved
          <div className="section-card">
          {data.nurseNotes && (data.nurseNotes.preTesting || data.nurseNotes.duringTesting || data.nurseNotes.postTesting || data.nurseNotes.signedBy) && (
            <div>
-             <h3 className="text-sm md:text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2 border-b-2 border-blue-400 pb-2 mb-4 print:text-xs print:mb-2">
+             <h3 className="text-sm md:text-base font-bold text-status-info uppercase tracking-wider flex items-center gap-2 border-b-2 border-status-info/50 pb-2 mb-4 print:text-xs print:mb-2">
                <ClipboardList className="w-5 h-5 print:w-4 print:h-4" /> Nursing Notes
              </h3>
              <div className="space-y-3 print:space-y-2">
                {data.nurseNotes.preTesting && (
-                 <div className="bg-status-info/10 border border-status-info/30 rounded-none p-3 print:bg-white print:border-blue-200 print:p-2">
+                 <div className="bg-status-info/10 border border-status-info/30 rounded-none p-3 print:bg-white print-rule print:p-2">
                    <p className="text-xs uppercase tracking-wider text-status-info font-semibold mb-1 print:mb-0.5">Pre-Testing</p>
                    <p className="text-sm whitespace-pre-wrap print:text-xs">{data.nurseNotes.preTesting}</p>
                  </div>
                )}
                {data.nurseNotes.duringTesting && (
-                 <div className="bg-status-info/10 border border-status-info/30 rounded-none p-3 print:bg-white print:border-blue-200 print:p-2">
+                 <div className="bg-status-info/10 border border-status-info/30 rounded-none p-3 print:bg-white print-rule print:p-2">
                    <p className="text-xs uppercase tracking-wider text-status-info font-semibold mb-1 print:mb-0.5">During Testing</p>
                    <p className="text-sm whitespace-pre-wrap print:text-xs">{data.nurseNotes.duringTesting}</p>
                  </div>
                )}
                {data.nurseNotes.postTesting && (
-                 <div className="bg-status-info/10 border border-status-info/30 rounded-none p-3 print:bg-white print:border-blue-200 print:p-2">
+                 <div className="bg-status-info/10 border border-status-info/30 rounded-none p-3 print:bg-white print-rule print:p-2">
                    <p className="text-xs uppercase tracking-wider text-status-info font-semibold mb-1 print:mb-0.5">Post-Testing / Discharge</p>
                    <p className="text-sm whitespace-pre-wrap print:text-xs">{data.nurseNotes.postTesting}</p>
                  </div>
@@ -276,7 +276,7 @@ const ClinicalReport: React.FC<ClinicalReportProps> = ({ data, activeReportSaved
             <h3 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2 border-b-2 border-primary pb-2 mb-4 print:text-xs print:mb-2">
               <FileText className="w-5 h-5 print:w-4 print:h-4" /> Assessment & Plan
             </h3>
-            <div className="bg-muted border border-border rounded-none p-4 whitespace-pre-wrap text-sm md:text-base print:bg-white print:border-slate-300 print:p-2 print:text-xs">
+            <div className="bg-muted border border-border rounded-none p-4 whitespace-pre-wrap text-sm md:text-base print:bg-white print-rule print:p-2 print:text-xs">
                {data.plan || 'No comments recorded.'}
             </div>
          </div>

@@ -223,40 +223,40 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
       <CardContent className="p-4 md:p-6 print:p-4 space-y-4 print:space-y-3">
 
         {/* === MEDICATION CHART HEADER === */}
-        <div className="flex border border-border print:border-black">
+        <div className="flex border border-border print:border-black print-keep-together">
 
           {/* Left: Patient identification label box */}
           <div className="flex-1 border-r border-border print:border-black p-2 print:p-1.5 min-w-0">
-            <p className="text-[10px] print:text-[9px] font-semibold text-center text-muted-foreground print:text-slate-600 mb-1.5 print:mb-1">
+            <p className="text-[10px] print:text-[9px] font-semibold text-center text-muted-foreground print-muted-ink mb-1.5 print:mb-1">
               Affix patient identification label here
             </p>
             <table className="w-full text-xs print:text-[9px] border-collapse">
               <tbody>
                 <tr className="border-t border-border print:border-black">
-                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print:text-slate-700 whitespace-nowrap w-24 print:w-20 align-top">REDCap ID:</td>
+                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print-ink whitespace-nowrap w-24 print:w-20 align-top">REDCap ID:</td>
                   <td className="py-0.5 font-mono text-foreground print:text-black">{patient.mrn}</td>
                 </tr>
                 <tr className="border-t border-border print:border-black">
-                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print:text-slate-700 whitespace-nowrap align-top">Family name:</td>
+                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print-ink whitespace-nowrap align-top">Family name:</td>
                   <td className="py-0.5 font-semibold text-foreground print:text-black uppercase">{patient.lastName}</td>
                 </tr>
                 <tr className="border-t border-border print:border-black">
-                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print:text-slate-700 whitespace-nowrap align-top">Given names:</td>
+                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print-ink whitespace-nowrap align-top">Given names:</td>
                   <td className="py-0.5 text-foreground print:text-black">{patient.firstName}</td>
                 </tr>
                 <tr className="border-t border-border print:border-black">
-                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print:text-slate-700 whitespace-nowrap align-top">Address:</td>
-                  <td className="py-0.5 text-muted-foreground print:text-slate-400 italic text-[10px] print:text-[8px] text-center">
+                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print-ink whitespace-nowrap align-top">Address:</td>
+                  <td className="py-0.5 text-muted-foreground print-muted-ink italic text-[10px] print:text-[8px] text-center">
                     Not a valid<br />prescription unless<br />identifiers present
                   </td>
                 </tr>
                 <tr className="border-t border-border print:border-black">
-                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print:text-slate-700 whitespace-nowrap align-middle">Date of birth:</td>
+                  <td className="py-0.5 pr-2 font-semibold text-muted-foreground print-ink whitespace-nowrap align-middle">Date of birth:</td>
                   <td className="py-0.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-foreground print:text-black">{patient.dob ? formatDate(patient.dob) : ''}</span>
                       <span className="flex items-center gap-1.5 shrink-0">
-                        <span className="font-semibold text-muted-foreground print:text-slate-700">Sex:</span>
+                        <span className="font-semibold text-muted-foreground print-ink">Sex:</span>
                         <span className="flex items-center gap-0.5">
                           <Checkbox checked={isMale} />
                           <span className="text-foreground print:text-black">M</span>
@@ -271,7 +271,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
                 </tr>
               </tbody>
             </table>
-            <p className="mt-1 text-[9px] print:text-[8px] font-semibold text-red-600 print:text-red-700">
+            <p className="mt-1 text-[9px] print:text-[8px] font-semibold text-status-danger print-alert-ink">
               First prescriber to print patient name and check label correct:
             </p>
           </div>
@@ -279,21 +279,21 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
           {/* Right: ADR sticker + form title */}
           <div className="flex flex-col min-w-[180px] print:min-w-[160px]">
             <div className="border-b border-border print:border-black p-2 print:p-1.5 text-center">
-              <p className="text-xs print:text-[10px] font-bold text-status-danger print:text-red-700 border border-status-danger print:border-red-700 px-2 py-0.5 inline-block">
+              <p className="text-xs print:text-[10px] font-bold text-status-danger print-alert-ink border border-status-danger print-alert-ink px-2 py-0.5 inline-block">
                 Attach ADR sticker
               </p>
-              <p className="text-[9px] print:text-[8px] text-muted-foreground print:text-slate-600 mt-0.5">See front page for details</p>
+              <p className="text-[9px] print:text-[8px] text-muted-foreground print-muted-ink mt-0.5">See front page for details</p>
             </div>
             <div className="flex-1 p-3 print:p-2 flex flex-col items-center justify-center gap-1">
               <p className="text-base print:text-sm font-bold text-foreground print:text-black leading-tight text-center">
                 Anaesthetic Allergy<br />Skin Testing<br />Request
               </p>
               {reactionDate && (
-                <p className="text-[10px] print:text-[9px] text-center text-muted-foreground print:text-slate-600">
+                <p className="text-[10px] print:text-[9px] text-center text-muted-foreground print-muted-ink">
                   Reaction: {formatDate(reactionDate)}
                 </p>
               )}
-              <p className="text-xs print:text-[10px] text-center text-muted-foreground print:text-slate-600">
+              <p className="text-xs print:text-[10px] text-center text-muted-foreground print-muted-ink">
                 Year: 20{new Date().getFullYear().toString().slice(2)}
               </p>
             </div>
@@ -309,7 +309,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
         )}
 
         {/* Department line */}
-        <p className="text-xs text-muted-foreground print:text-[9px] print:text-slate-600">
+        <p className="text-xs text-muted-foreground print:text-[9px] print-muted-ink">
           Department of Clinical Immunology &amp; Allergy · Royal Prince Alfred Hospital · Date of request: {formatDate(new Date().toISOString())}
         </p>
 
@@ -355,7 +355,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
         <div>
           {/* Reference Controls */}
           <div className="mb-2 print:mb-1.5 flex flex-wrap items-center gap-x-6 gap-y-1 border border-border print:border-black p-2 print:p-1.5 bg-muted print:bg-white text-xs print:text-[9px]">
-            <span className="font-semibold text-muted-foreground print:text-slate-700 uppercase tracking-wide text-[10px] print:text-[8px]">
+            <span className="font-semibold text-muted-foreground print-ink uppercase tracking-wide text-[10px] print:text-[8px]">
               Reference Controls:
             </span>
             {[
@@ -364,14 +364,14 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
               { label: 'Saline (IDT)', unit: 'mm' },
             ].map(({ label, unit }) => (
               <span key={label} className="flex items-end gap-1">
-                <span className="text-foreground/80 print:text-slate-700">{label}</span>
+                <span className="text-foreground/80 print-ink">{label}</span>
                 <span className="border-b border-border dark:border-border print:border-black inline-block min-w-[3rem] print:h-5" />
                 <span className="text-muted-foreground">{unit}</span>
               </span>
             ))}
           </div>
 
-          <table className="w-full border-collapse border border-border print:border-black text-xs print:text-[9px] print:break-inside-auto">
+          <table className="w-full border-collapse border border-border print:border-black text-xs print:text-[9px]">
             <thead>
               <tr>
                 <th
@@ -382,7 +382,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
                   Skin Prick Test (SPT) and Intradermal Test (IDT) Protocol
                 </th>
               </tr>
-              <tr className="bg-muted/50 print:bg-white text-muted-foreground print:text-slate-700 uppercase text-[10px] print:text-[8px] tracking-wider">
+              <tr className="bg-muted/50 print:bg-white text-muted-foreground print-ink uppercase text-[10px] print:text-[8px] tracking-wider">
                 <th scope="col" className="border border-border print:border-black px-1.5 py-1.5 print:py-1 font-semibold text-left w-14 print:w-12">Date</th>
                 <th scope="col" className="border border-border print:border-black px-1.5 py-1.5 print:py-1 font-semibold text-left">Drug (generic name)</th>
                 <th scope="col" className="border border-border print:border-black px-1.5 py-1.5 print:py-1 font-semibold text-center w-12 print:w-10">Type</th>
@@ -403,7 +403,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
                     <div className="font-semibold text-foreground print:text-black leading-tight flex flex-wrap items-center gap-1">
                       {row.drugName}
                       {row.protocolLabel && (
-                        <span className="font-normal text-muted-foreground print:text-slate-600">({row.protocolLabel})</span>
+                        <span className="font-normal text-muted-foreground print-muted-ink">({row.protocolLabel})</span>
                       )}
                       {row.isCustomNotListed && (
                         <span className="border border-foreground print:border-black rounded-none px-1 text-[9px] uppercase tracking-wide text-foreground print:text-black font-semibold">
@@ -413,7 +413,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
                     </div>
                     {row.isFirstForDrug && (
                       <>
-                        <div className="text-[9px] print:text-[8px] text-muted-foreground print:text-slate-500 uppercase tracking-wide mt-0.5">
+                        <div className="text-[9px] print:text-[8px] text-muted-foreground print-muted-ink uppercase tracking-wide mt-0.5">
                           {row.category}
                         </div>
                         {row.requiresReview && (
@@ -445,15 +445,15 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
                   <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5 text-center font-bold text-foreground print:text-black">
                     {row.type}
                   </td>
-                  <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5 font-mono text-muted-foreground print:text-slate-700 leading-tight">
+                  <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5 font-mono text-muted-foreground print-ink leading-tight">
                     <div>{row.concentration}</div>
                     {row.preparation && (
-                      <div className="text-[9px] print:text-[8px] text-muted-foreground print:text-slate-600 mt-0.5 font-sans">
+                      <div className="text-[9px] print:text-[8px] text-muted-foreground print-muted-ink mt-0.5 font-sans">
                         {row.preparation}
                       </div>
                     )}
                     {row.diluent && (
-                      <div className="text-[9px] print:text-[8px] text-muted-foreground print:text-slate-500 mt-0.5 font-sans">
+                      <div className="text-[9px] print:text-[8px] text-muted-foreground print-muted-ink mt-0.5 font-sans">
                         {row.diluent.startsWith('Neat') ? row.diluent : `in ${row.diluent}`}
                       </div>
                     )}
@@ -463,7 +463,7 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
                   <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5" />
                   <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5" />
                   <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5 text-center">
-                    <span className="text-[9px] print:text-[8px] text-muted-foreground print:text-slate-400">mm</span>
+                    <span className="text-[9px] print:text-[8px] text-muted-foreground print-muted-ink">mm</span>
                   </td>
                   <td className="border border-border print:border-black px-1.5 py-2 print:py-1.5" />
                 </tr>
@@ -494,22 +494,22 @@ const TestingPlanPrintView = ({ patient, data, drugCategories, onProceed }: Test
             { label: 'Nurse', width: 'min-w-[10rem]' },
           ].map(({ label, width }) => (
             <span key={label} className="flex items-end gap-1.5">
-              <span className="font-semibold text-foreground/80 print:text-slate-700">{label}:</span>
+              <span className="font-semibold text-foreground/80 print-ink">{label}:</span>
               <span className={`border-b border-border dark:border-border print:border-black inline-block print:h-6 ${width}`} />
             </span>
           ))}
         </div>
 
         {/* Signature Area */}
-        <div className="pt-6 border-t border-border print:pt-4">
+        <div className="pt-6 border-t border-border print:pt-4 print-signature-block">
           <div className="flex justify-between gap-12 print:gap-6">
             <div className="flex-1">
               <div className="border-b-2 border-foreground print:border-black h-8 print:h-12" />
-              <p className="text-xs uppercase font-semibold text-muted-foreground tracking-wider print:text-[9px] mt-1">Requested By (Name &amp; Signature)</p>
+              <p className="text-xs uppercase font-semibold text-muted-foreground print-muted-ink tracking-wider print:text-[9px] mt-1">Requested By (Name &amp; Signature)</p>
             </div>
             <div className="w-40 print:w-32">
               <div className="border-b-2 border-foreground print:border-black h-8 print:h-12" />
-              <p className="text-xs uppercase font-semibold text-muted-foreground tracking-wider print:text-[9px] mt-1">Date</p>
+              <p className="text-xs uppercase font-semibold text-muted-foreground print-muted-ink tracking-wider print:text-[9px] mt-1">Date</p>
             </div>
           </div>
         </div>

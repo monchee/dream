@@ -59,11 +59,23 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
-  			status: {
-  				grade1: 'hsl(var(--status-grade1))',
-  				grade2: 'hsl(var(--status-grade2))',
-  				grade3: 'hsl(var(--status-grade3))',
-				grade4: 'hsl(var(--status-grade4))',
+    			status: {
+    				grade1: {
+    					DEFAULT: 'hsl(var(--status-grade1))',
+    					foreground: 'hsl(var(--status-grade1-foreground))',
+    				},
+    				grade2: {
+    					DEFAULT: 'hsl(var(--status-grade2))',
+    					foreground: 'hsl(var(--status-grade2-foreground))',
+    				},
+    				grade3: {
+    					DEFAULT: 'hsl(var(--status-grade3))',
+    					foreground: 'hsl(var(--status-grade3-foreground))',
+    				},
+    				grade4: {
+    					DEFAULT: 'hsl(var(--status-grade4))',
+    					foreground: 'hsl(var(--status-grade4-foreground))',
+    				},
 				success: {
 					DEFAULT: 'hsl(var(--status-success))',
 					foreground: 'hsl(var(--status-success-foreground))',

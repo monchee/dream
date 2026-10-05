@@ -6,6 +6,25 @@ import { UNLOCK_KEY, isAppUnlocked } from '@shared/utils/pwaUpdatePolicy';
 
 const APP_VERSION = __APP_VERSION__;
 
+/**
+ * Intentionally hardcoded (decision recorded in plans/README.md, 2026-06-12,
+ * reaffirmed 2026-10-05). This PIN is a client-side privacy screen that
+ * reduces casual shoulder-surfing on shared hospital terminals — nothing more.
+ *
+ * What it protects: the visible browser session from casual observation.
+ *
+ * What it does NOT provide: enterprise authentication, database
+ * authorization, encryption, source-code secrecy, bundle secrecy (anyone
+ * who inspects the shipped JavaScript can read this constant), or any
+ * network security. Unlock state lives in sessionStorage for the current
+ * tab session only (see setStoredUnlock below).
+ *
+ * To change the PIN: replace these four digits, then update the matching
+ * literals in PasswordGate.test.tsx (the unlock and wrong-PIN test cases)
+ * and run the plan's verification commands.
+ *
+ * The PIN must never be logged or sent to an external service.
+ */
 const HARDCODED_PIN = '2050';
 
 function setStoredUnlock(val: boolean) {

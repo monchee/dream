@@ -63,7 +63,7 @@ function SubmissionDetail({ record, onDelete }: { record: ResearchRecord; onDele
               <thead>
                 <tr className="bg-muted border-b border-border">
                   {['Drug', 'SPT', 'IDT Results', 'Result'].map((h) => (
-                    <th key={h} className="px-3 py-1.5 text-left font-semibold text-muted-foreground uppercase text-xs tracking-wider">
+                    <th key={h} scope="col" className="px-3 py-1.5 text-left font-semibold text-muted-foreground uppercase text-xs tracking-wider">
                       {h}
                     </th>
                   ))}
