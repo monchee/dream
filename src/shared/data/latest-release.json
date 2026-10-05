@@ -1,5 +1,9 @@
 [
   {
+    "version": "v0.90.1",
+    "codename": "The Release Guard"
+  },
+  {
     "version": "v0.90.0",
     "codename": "A Safer, Quieter Workbench"
   },
@@ -14,9 +18,5 @@
   {
     "version": "v0.79.16",
     "codename": "One Line, Four Fields"
-  },
-  {
-    "version": "v0.79.15",
-    "codename": "Solid, Slim, Self-Clearing"
   }
 ]

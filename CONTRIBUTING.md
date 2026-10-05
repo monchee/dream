@@ -54,6 +54,11 @@ For user-visible changes:
 7. Create the GitHub release.
 8. Publish with `npm run deploy`.
 
+These steps are enforced, not just recommended:
+
+- **Every pull request into `main` must bump `package.json`** (patch is fine) and carry a matching `CHANGELOG.md` entry. CI's `release` job runs `npm run check:release -- --against origin/main` and fails otherwise. Add the `skip-release` label to exempt a PR (e.g. a stacked tooling change).
+- **Every build and deploy runs the same guard** via the `prebuild` hook — a version without a changelog entry cannot be built or deployed. Set `ALLOW_UNRELEASED=1` to bypass for an exceptional build.
+
 ## Pull Requests
 
 - Prefer focused changes with clear clinical/user impact.

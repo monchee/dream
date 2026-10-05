@@ -35,6 +35,19 @@ jobs:
       - name: Build
         run: npm run build
 
+  release:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-release')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Release guard — version must be bumped and carry a changelog entry
+        run: node scripts/check-release.mjs --against origin/main
+
   e2e:
     runs-on: ubuntu-latest
 
