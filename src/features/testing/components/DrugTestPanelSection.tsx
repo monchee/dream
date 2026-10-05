@@ -4,6 +4,7 @@ import { Activity, Check, ChevronDown, ClipboardList, Plus, Search } from 'lucid
 import { LogFormData } from '@shared/types';
 import { CATEGORY_THEMES, DEFAULT_THEME } from '@shared/utils/constants';
 import { FilterClearButton } from '@shared/components/controls';
+import { getSkinProtocolsForDrug } from '@shared/data/drugMasterlist';
 import { DrugTestGrid } from './DrugTestGrid';
 import { preventNegativeInput } from './TestingLogFormSectionShared';
 
@@ -23,6 +24,8 @@ export interface DrugTestPanelSectionProps {
   onRemoveRow: (index: number) => void;
   onAddCustomIdtStep: (rowIndex: number) => void;
   onRemoveCustomIdtStep: (rowIndex: number, stepIndex: number) => void;
+  /** R1: section actions (Previous/Next) rendered in the record lane, before the plan lane. */
+  sectionActions?: React.ReactNode;
 }
 
 export function DrugTestPanelSection({
@@ -41,14 +44,59 @@ export function DrugTestPanelSection({
   onRemoveRow,
   onAddCustomIdtStep,
   onRemoveCustomIdtStep,
+  sectionActions,
 }: DrugTestPanelSectionProps) {
   const selectedCount = formData.testPanel.filter(row => !row.id).length;
 
-  // R1 two-speed cockpit: the plan lane opens automatically while nothing is
-  // selected (you must configure first) and starts collapsed once the panel
-  // has drugs, so recording is the first thing on screen. Disclosure state is
-  // session-only and never part of the clinical draft.
+  // R1 two-speed cockpit: the plan lane auto-manages until the nurse takes
+  // over — open while nothing is selected, collapse on the first selection,
+  // re-open if the panel empties. A manual toggle stops auto-management for
+  // the session. Disclosure state is session-only and never part of the
+  // clinical draft.
   const [planOpen, setPlanOpen] = React.useState(selectedCount === 0);
+  const [planManuallyToggled, setPlanManuallyToggled] = React.useState(false);
+  const previousSelectedCount = React.useRef(selectedCount);
+
+  React.useEffect(() => {
+    if (planManuallyToggled) return;
+    if (previousSelectedCount.current === 0 && selectedCount > 0) {
+      setPlanOpen(false);
+    }
+    if (selectedCount === 0) {
+      setPlanOpen(true);
+    }
+    previousSelectedCount.current = selectedCount;
+  }, [selectedCount, planManuallyToggled]);
+
+  // A custom drug without concentrations cannot be tested — surface the plan
+  // lane so the nurse can complete it, even mid-recording.
+  React.useEffect(() => {
+    const needsPlan = formData.testPanel.some(
+      row => !row.id && row.drugName === 'Other' && !row.customSptConcentration && (row.customIdtSteps ?? []).length === 0,
+    );
+    if (needsPlan) setPlanOpen(true);
+  }, [formData.testPanel]);
+
+  const togglePlanLane = () => {
+    setPlanManuallyToggled(true);
+    setPlanOpen(open => !open);
+  };
+
+  const openPlanLane = () => {
+    setPlanManuallyToggled(true);
+    setPlanOpen(true);
+  };
+
+  // One-line plan status: drugs, protocol options, and dilution steps.
+  const selectedRows = formData.testPanel.filter(row => !row.id);
+  const protocolChoiceCount = selectedRows.filter(
+    row => row.drugName !== 'Other' && getSkinProtocolsForDrug(row.drugName).length > 1,
+  ).length;
+  const dilutionStepCount = selectedRows.reduce((sum, row) => {
+    if (row.drugName === 'Other') return sum + (row.customIdtSteps?.length ?? 0);
+    const protocols = getSkinProtocolsForDrug(row.drugName);
+    return sum + (protocols[row.protocolIndex ?? 0]?.idtSteps?.length ?? 0);
+  }, 0);
 
   const noFilterMatches = drugFilter && Object.values(drugCategories).every(
     drugs => !(drugs as string[]).some(d => d.toLowerCase().includes(drugFilter.toLowerCase())),
@@ -100,23 +148,32 @@ export function DrugTestPanelSection({
           onRemove={onRemoveRow}
           onAddCustomIdtStep={onAddCustomIdtStep}
           onRemoveCustomIdtStep={onRemoveCustomIdtStep}
+          planDetailsVisible={planOpen}
+          onOpenPlan={openPlanLane}
         />
+
+        {/* Section actions sit in the record lane, before the plan lane (R1 focus order) */}
+        {sectionActions}
 
         {/* ── Plan-and-reference lane (secondary, disclosed): drug selection ── */}
         <div className="border border-border rounded-none">
           <button
             type="button"
-            onClick={() => setPlanOpen(open => !open)}
+            onClick={togglePlanLane}
             aria-expanded={planOpen}
-            aria-controls="testing-plan-lane"
+            aria-controls={planOpen ? 'testing-plan-lane' : undefined}
             className="w-full min-h-[44px] flex items-center justify-between gap-3 px-4 py-2.5 text-left bg-muted/50 hover:bg-muted transition-colors rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           >
             <span className="flex items-center gap-2 min-w-0 text-sm font-semibold text-foreground">
               <ClipboardList className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
-              <span className="min-w-0 truncate">
-                Testing plan &amp; drug selection
-                <span className="ml-2 font-normal text-muted-foreground text-xs">
+              <span className="min-w-0">
+                <span className="block truncate">
+                  Testing plan &amp; drug selection
+                </span>
+                <span className="block text-xs font-normal text-muted-foreground mt-0.5">
                   {selectedCount} drug{selectedCount === 1 ? '' : 's'} selected
+                  {protocolChoiceCount > 0 && ` · ${protocolChoiceCount} with protocol options`}
+                  {dilutionStepCount > 0 && ` · ${dilutionStepCount} dilution step${dilutionStepCount === 1 ? '' : 's'}`}
                 </span>
               </span>
             </span>
@@ -150,6 +207,7 @@ export function DrugTestPanelSection({
                   value={drugFilter}
                   onChange={e => setDrugFilter(e.target.value)}
                   placeholder="Filter drugs..."
+                  aria-label="Filter drugs"
                   className="h-11 xl:h-8 pl-8 pr-11 xl:pr-8 text-xs rounded-none bg-background text-foreground"
                 />
                 {drugFilter && (
@@ -183,11 +241,11 @@ export function DrugTestPanelSection({
                       <div className={`flex justify-between items-center border-b border-dashed pb-1 mb-2 ${hasActiveSelection ? `${theme.headerBorder}` : 'border-border'}`}>
                         <p className={`section-label flex items-center gap-2 ${hasActiveSelection ? theme.headerText : ''}`}>
                           {category}
-                          {hasActiveSelection && <span className={`flex h-1.5 w-1.5 rounded-none ${theme.pulse} animate-pulse`}></span>}
                         </p>
                         <button
+                          type="button"
                           onClick={(e) => { e.preventDefault(); onToggleCategory(categoryDrugs); }}
-                          className={`text-xs hover:underline font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${hasActiveSelection ? theme.actionText : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`text-xs hover:underline font-medium transition-colors min-h-[44px] xl:min-h-0 inline-flex items-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${hasActiveSelection ? theme.actionText : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           {allCategorySelected ? 'Select None' : 'Select All'}
                         </button>
@@ -200,7 +258,7 @@ export function DrugTestPanelSection({
                               key={drug}
                               onClick={() => onToggleDrug(drug)}
                               aria-pressed={isSelected}
-                              className={`text-xs px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
+                              className={`text-xs px-2.5 py-1.5 min-h-[44px] xl:min-h-0 rounded-none border transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${category === 'Others' ? 'md:w-full' : ''} ${
                                 isSelected
                                   ? theme.btnSelected
                                   : `bg-card text-muted-foreground border-border hover:bg-muted/50 ${theme.btnHover}`
@@ -215,7 +273,7 @@ export function DrugTestPanelSection({
                         {category === 'Others' && (
                           <button
                             onClick={onAddCustomDrug}
-                            className={`md:w-full text-xs px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-none border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${theme.btnHover}`}
+                            className={`md:w-full text-xs px-2.5 py-1.5 min-h-[44px] xl:min-h-0 rounded-none border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow] duration-150 flex items-center gap-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${theme.btnHover}`}
                           >
                             <Plus className="w-3 h-3 shrink-0" />
                             Other

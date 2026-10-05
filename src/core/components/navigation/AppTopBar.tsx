@@ -82,7 +82,7 @@ export const AppTopBar: React.FC<AppTopBarProps> = ({
         {/* Dedicated title row: wraps, never truncates (R2 identity-rail spec) */}
         {title && (
           <div className="px-3 sm:px-4 pb-2">
-            <h1 className="text-base font-bold tracking-tight text-white leading-snug break-words m-0">
+            <h1 className="text-base font-bold tracking-tight text-masthead-foreground leading-snug break-words m-0">
               {title}
             </h1>
           </div>

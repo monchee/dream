@@ -55,7 +55,7 @@ export function ClinicalContextBar({
     ? `${redact(lastName.toUpperCase())}, ${redact(firstName)}`
     : 'NO IDENTITY ENTERED';
 
-  const accessibleLabel = ariaLabelProp || ariaLabel || 'Current patient and encounter';
+  const accessibleLabel = ariaLabelProp || ariaLabel || 'Active patient identity';
 
   const redcapValue = mrn ? redact(mrn) : '—';
   const dobValue = dob ? redact(formatDate(dob)) : 'not recorded';
@@ -118,7 +118,7 @@ export function ClinicalContextBar({
             {visitDate && (
               <>
                 <dt className="text-muted-foreground font-medium">Visit</dt>
-                <dd className="text-foreground m-0">{formatDate(visitDate)}</dd>
+                <dd className="text-foreground m-0">{redact(formatDate(visitDate))}</dd>
               </>
             )}
 
@@ -142,14 +142,11 @@ export function ClinicalContextBar({
         className,
       )}
     >
-      {/* Mobile identity rail (<768px): dedicated rows, never scrolls or truncates */}
+      {/* Mobile identity rail (<768px): three dedicated rows — name, ID/DOB, details */}
       <div className="md:hidden px-3 sm:px-4 py-2 flex flex-col gap-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 min-w-0">
-          <span className="font-semibold text-sm text-foreground break-words min-w-0 leading-5">
-            {formattedName}
-          </span>
-          {detailsButton}
-        </div>
+        <span className="font-semibold text-sm text-foreground break-words min-w-0 leading-5">
+          {formattedName}
+        </span>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-medium text-foreground">
           <span className="whitespace-nowrap">
             REDCap ID <span className="font-mono font-semibold">{redcapValue}</span>
@@ -157,6 +154,7 @@ export function ClinicalContextBar({
           <span aria-hidden="true" className="text-muted-foreground">·</span>
           <span className="whitespace-nowrap">DOB {dobValue}</span>
         </div>
+        <div>{detailsButton}</div>
       </div>
 
       {/* Tablet / Desktop identity rail (>=768px): single wrapping row */}

@@ -236,6 +236,42 @@ describe('TestingLogForm (Indexed Workflow)', () => {
         testPanel: [],
       }));
     });
+
+    it('opens the plan lane by default when no drugs are selected', () => {
+      render(<TestWrapper initialData={{ ...mockFormData, testPanel: [] }} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      const disclosure = screen.getByRole('button', { name: /Testing plan & drug selection/i });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByText('Select Drugs to Test:')).toBeInTheDocument();
+    });
+
+    it('auto-collapses the plan lane when the first drug is selected', () => {
+      render(<TestWrapper initialData={{ ...mockFormData, testPanel: [] }} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      const disclosure = screen.getByRole('button', { name: /Testing plan & drug selection/i });
+      expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+
+      // Selecting the first drug collapses the lane so recording leads
+      fireEvent.click(screen.getByRole('button', { name: 'Rocuronium' }));
+
+      expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByText('Select Drugs to Test:')).not.toBeInTheDocument();
+    });
+
+    it('keeps the plan-lane disclosure state out of the clinical draft', () => {
+      render(<TestWrapper initialData={mockFormData} props={mockProps} />);
+      fireEvent.click(screen.getByRole('button', { name: /2\.\s*SPT and IDT/i }));
+
+      const callsBefore = (mockProps.setFormData as ReturnType<typeof vi.fn>).mock.calls.length;
+
+      // Toggle the lane open and closed — a session-only UI concern
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Testing plan & drug selection/i }));
+
+      expect((mockProps.setFormData as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
+    });
   });
 
   describe('Section 3: Drug Challenge', () => {

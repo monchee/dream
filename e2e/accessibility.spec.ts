@@ -424,7 +424,7 @@ test.describe('Accessibility Tests', () => {
     await expect(tabletTopBar).toBeHidden();
 
     // Compact patient context strip
-    const contextBar = page.locator('aside[aria-label="Current patient and encounter"]');
+    const contextBar = page.locator('aside[aria-label="Active patient identity"]');
     await expect(contextBar).toBeVisible();
 
     const mobileContextStrip = contextBar.locator('.md\\:hidden');
@@ -443,9 +443,13 @@ test.describe('Accessibility Tests', () => {
     await expect(popoverContent).toContainText('CHEN');
 
     // Verify popover does not increase sticky stack height. R2 identity rail:
-    // the stack is header (controls + dedicated title row) + two-row rail,
-    // budgeted at 200px — generous enough for the rail, tight enough to catch
-    // runaway stacking.
+    // the stack is header (controls + dedicated title row) + the three-row
+    // rail. Component-level bound: the rail itself stays under 150px; the
+    // whole stack stays under 200px.
+    const railBox = await mobileContextStrip.boundingBox();
+    expect(railBox).not.toBeNull();
+    expect(railBox!.height).toBeLessThan(150);
+
     const stickyChrome = page.locator('.sticky.top-0');
     const chromeBox = await stickyChrome.boundingBox();
     expect(chromeBox).not.toBeNull();
@@ -481,7 +485,7 @@ test.describe('Accessibility Tests', () => {
     await expect(tabletTopBar.locator('.text-muted-foreground').first()).toBeVisible();
 
     // Context bar full inline row is visible
-    const contextBar = page.locator('aside[aria-label="Current patient and encounter"]');
+    const contextBar = page.locator('aside[aria-label="Active patient identity"]');
     await expect(contextBar).toBeVisible();
     const desktopContextRow = contextBar.locator('.hidden.md\\:block');
     await expect(desktopContextRow).toBeVisible();
@@ -741,11 +745,12 @@ test.describe('Automated Accessibility Scans', () => {
     await page.goto(baseURL ?? '/');
     await page.waitForSelector('h1', { timeout: 15000 });
 
-    // No decorative layers exist to animate; the content frame must be static
+    // No decorative layers exist to animate; the content frame's own entrance
+    // animation (animate-content-enter) must be disabled under reduced motion.
     await expect(page.locator('.lock-station-grid')).toHaveCount(0);
-    const frame = page.locator('.shadow-2xl');
-    await expect(frame).toBeAttached();
-    const frameAnimation = await frame.evaluate((el) => window.getComputedStyle(el).animationName);
+    const contentFrame = page.locator('.animate-content-enter');
+    await expect(contentFrame).toBeAttached();
+    const frameAnimation = await contentFrame.evaluate((el) => window.getComputedStyle(el).animationName);
     expect(frameAnimation).toBe('none');
   });
 

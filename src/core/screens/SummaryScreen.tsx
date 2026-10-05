@@ -36,6 +36,22 @@ const BACK_ICON = "w-4 h-4 opacity-90 group-hover:opacity-100 transition-opacity
 
 export type ReportTab = 'report' | 'handout' | 'letter';
 
+/** Tracks browser connectivity so external actions can disable themselves (R3). */
+function useOnlineStatus(): boolean {
+  const [isOnline, setIsOnline] = React.useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+  React.useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+  return isOnline;
+}
+
 function RedactToggle() {
   const { isRedacted, toggleRedact } = useRedact();
   return (
@@ -85,6 +101,7 @@ function SummaryScreenContent({
   const { isRedacted, redact } = useRedact();
   const [activeOutboundAction, setActiveOutboundAction] = useState<OutboundActionType | null>(null);
   const [confirmNewLogOpen, setConfirmNewLogOpen] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const tabLabel = ({ report: 'Clinical Report', handout: 'Patient Handout', letter: 'Powerchart Letter' } as const)[activeReportTab];
   const patientName = `${lastSavedRecord.firstName} ${lastSavedRecord.lastName}`;
@@ -117,8 +134,9 @@ function SummaryScreenContent({
     try {
       const emailPatientName = isRedacted ? redact(patientName) : patientName;
       const subject = `${tabLabel}: ${emailPatientName}${visitDate ? ` - ${visitDate}` : ''}`;
-      // Blank recipient per Phase 4 specification
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(getCopyText())}`;
+      // Recipient matches the destination shown on the action (R3): the draft
+      // must arrive at the mailbox the control names.
+      window.location.href = `mailto:SLHD-RPA-allergynurses@health.nsw.gov.au?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(getCopyText())}`;
     } catch (err) {
       showToast.error('Failed to open email client');
       throw err;
@@ -257,10 +275,16 @@ function SummaryScreenContent({
               <span className="font-mono font-semibold text-foreground">SLHD-RPA-allergynurses@health.nsw.gov.au</span>
             </span>
           </p>
+          {!isOnline && (
+            <p className="text-xs text-status-warning" role="status">
+              Offline — email is unavailable until the connection returns. Local print and copy still work.
+            </p>
+          )}
           <Button
             onClick={() => setActiveOutboundAction('email')}
             size="lg"
             variant="outline"
+            disabled={!isOnline}
             aria-label="Send via email to the allergy nurses mailbox (leaves this device)"
             className="w-full py-4 h-auto text-sm rounded-none"
           >
@@ -282,27 +306,38 @@ function SummaryScreenContent({
             Only the de-identified research payload is transmitted — no patient identifiers
           </p>
           {research.isSubmitted ? (
-            <div className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none">
+            <div
+              className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none"
+              role="status"
+              aria-live="polite"
+            >
               <CheckCircle2 className="w-4 h-4" /> Submitted to Research Database
             </div>
           ) : (
-            <Button
-              onClick={() => setActiveOutboundAction('research')}
-              disabled={research.isSubmitting}
-              size="lg"
-              variant="outline"
-              aria-label="Save de-identified data to the research database"
-              className="w-full py-4 h-auto text-sm rounded-none border-dashed"
-            >
-              {research.isSubmitting ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving to Research Database…</>
-              ) : (
-                <><Database className="w-4 h-4 mr-2" /> Save to Research Database</>
+            <>
+              {!isOnline && (
+                <p className="text-xs text-status-warning" role="status">
+                  Offline — research submission is unavailable until the connection returns.
+                </p>
               )}
-            </Button>
+              <Button
+                onClick={() => setActiveOutboundAction('research')}
+                disabled={research.isSubmitting || !isOnline}
+                size="lg"
+                variant="outline"
+                aria-label="Save de-identified data to the research database"
+                className="w-full py-4 h-auto text-sm rounded-none border-dashed"
+              >
+                {research.isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving to Research Database…</>
+                ) : (
+                  <><Database className="w-4 h-4 mr-2" /> Save to Research Database</>
+                )}
+              </Button>
+            </>
           )}
           {research.error && (
-            <p className="mt-1 text-xs text-destructive text-center">{research.error}</p>
+            <p className="mt-1 text-xs text-destructive text-center" role="alert">{research.error}</p>
           )}
         </div>
       )}

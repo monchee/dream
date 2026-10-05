@@ -179,7 +179,7 @@ test.describe('Testing Day Flow', () => {
     await proceedBtn.click();
     await dismissHelpModal(page);
 
-    const identityBar = page.locator('[aria-label="Current patient and encounter"]');
+    const identityBar = page.locator('[aria-label="Active patient identity"]');
     await expect(identityBar).toBeVisible({ timeout: 10000 });
     await expect(identityBar).toContainText(/Chen, Wei|Wei Chen/i);
 

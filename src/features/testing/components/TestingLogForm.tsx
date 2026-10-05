@@ -142,6 +142,40 @@ const TestingLogForm: React.FC<TestingLogFormProps> = ({
     }
   };
 
+  // Shared step navigation; rendered inside the section-2 record lane (R1)
+  // and below the section for every other section.
+  const stepNavigationControls = (
+    <div className="flex items-center justify-between pt-4 border-t border-border no-print">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setActiveSectionIndex(i => Math.max(0, i - 1))}
+        disabled={activeSectionIndex === 0}
+        className="min-h-[44px] px-4 rounded-none btn-press"
+      >
+        <ChevronLeft className="w-4 h-4 mr-1.5" /> Previous Section
+      </Button>
+
+      {activeSectionIndex < lastSectionIndex && !showSectionOneSaveAction ? (
+        <Button
+          type="button"
+          onClick={() => setActiveSectionIndex(i => Math.min(lastSectionIndex, i + 1))}
+          className="min-h-[44px] px-4 rounded-none bg-primary text-primary-foreground font-semibold btn-press"
+        >
+          Next Section <ChevronRight className="w-4 h-4 ml-1.5" />
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          onClick={handleSave}
+          className="min-h-[44px] px-6 rounded-none bg-primary text-primary-foreground font-bold btn-press shadow-sm"
+        >
+          <Save className="w-4 h-4 mr-2" /> Save Clinical Record
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-w-0 max-w-full space-y-4 sm:space-y-6">
       {/* Mobile Workflow Navigator */}
@@ -184,7 +218,7 @@ const TestingLogForm: React.FC<TestingLogFormProps> = ({
             />
           )}
 
-          {/* Section 2: SPT and IDT */}
+          {/* Section 2: SPT and IDT — nav actions render inside the record lane (R1 focus order) */}
           {activeSectionIndex === 1 && (
             <DrugTestPanelSection
               formData={formData}
@@ -202,6 +236,7 @@ const TestingLogForm: React.FC<TestingLogFormProps> = ({
               onRemoveRow={removeRow}
               onAddCustomIdtStep={addCustomIdtStep}
               onRemoveCustomIdtStep={removeCustomIdtStep}
+              sectionActions={stepNavigationControls}
             />
           )}
 
@@ -255,36 +290,38 @@ const TestingLogForm: React.FC<TestingLogFormProps> = ({
             />
           )}
 
-          {/* Step Navigation Controls between sections */}
-          <div className="flex items-center justify-between pt-4 border-t border-border no-print">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setActiveSectionIndex(i => Math.max(0, i - 1))}
-              disabled={activeSectionIndex === 0}
-              className="min-h-[44px] px-4 rounded-none btn-press"
-            >
-              <ChevronLeft className="w-4 h-4 mr-1.5" /> Previous Section
-            </Button>
+          {/* Step Navigation Controls between sections (inside the record lane for section 2) */}
+          {activeSectionIndex !== 1 && (
+            <div className="flex items-center justify-between pt-4 border-t border-border no-print">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setActiveSectionIndex(i => Math.max(0, i - 1))}
+                disabled={activeSectionIndex === 0}
+                className="min-h-[44px] px-4 rounded-none btn-press"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1.5" /> Previous Section
+              </Button>
 
-            {activeSectionIndex < lastSectionIndex && !showSectionOneSaveAction ? (
-              <Button
-                type="button"
-                onClick={() => setActiveSectionIndex(i => Math.min(lastSectionIndex, i + 1))}
-                className="min-h-[44px] px-4 rounded-none bg-primary text-primary-foreground font-semibold btn-press"
-              >
-                Next Section <ChevronRight className="w-4 h-4 ml-1.5" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleSave}
-                className="min-h-[44px] px-6 rounded-none bg-primary text-primary-foreground font-bold btn-press shadow-sm"
-              >
-                <Save className="w-4 h-4 mr-2" /> Save Clinical Record
-              </Button>
-            )}
-          </div>
+              {activeSectionIndex < lastSectionIndex && !showSectionOneSaveAction ? (
+                <Button
+                  type="button"
+                  onClick={() => setActiveSectionIndex(i => Math.min(lastSectionIndex, i + 1))}
+                  className="min-h-[44px] px-4 rounded-none bg-primary text-primary-foreground font-semibold btn-press"
+                >
+                  Next Section <ChevronRight className="w-4 h-4 ml-1.5" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleSave}
+                  className="min-h-[44px] px-6 rounded-none bg-primary text-primary-foreground font-bold btn-press shadow-sm"
+                >
+                  <Save className="w-4 h-4 mr-2" /> Save Clinical Record
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

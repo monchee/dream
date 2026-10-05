@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -67,6 +67,27 @@ export function OutboundActionDialog({
 }: OutboundActionDialogProps) {
   const [isBusy, setIsBusy] = useState(false);
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
+  // R3: the dialog is invoked without a Radix trigger, so focus restoration to
+  // the output control that opened it is handled here.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      returnFocusRef.current = document.activeElement as HTMLElement | null;
+    } else if (returnFocusRef.current) {
+      // Restore after Radix has torn the dialog down
+      const target = returnFocusRef.current;
+      requestAnimationFrame(() => target.focus?.());
+      returnFocusRef.current = null;
+    }
+    return () => {
+      if (open) {
+        const target = returnFocusRef.current;
+        requestAnimationFrame(() => target?.focus?.());
+        returnFocusRef.current = null;
+      }
+    };
+  }, [open]);
 
   const patientName =
     propPatientName ??

@@ -26,9 +26,9 @@ function getMobileRail(container: HTMLElement) {
 }
 
 describe('ClinicalContextBar', () => {
-  it('renders with accessible aria-label "Current patient and encounter"', () => {
+  it('renders with accessible aria-label "Active patient identity"', () => {
     render(<ClinicalContextBar {...baseProps} />);
-    const bar = screen.getByLabelText('Current patient and encounter');
+    const bar = screen.getByLabelText('Active patient identity');
     expect(bar).toBeInTheDocument();
     expect(bar).toHaveTextContent('DOE, Jane');
   });
@@ -162,7 +162,7 @@ describe('ClinicalContextBar', () => {
     // Toggle redaction on
     fireEvent.click(screen.getByRole('button', { name: 'Redact identity' }));
 
-    const bar = screen.getByLabelText('Current patient and encounter');
+    const bar = screen.getByLabelText('Active patient identity');
     expect(screen.queryByText('MrN00aB1')).not.toBeInTheDocument();
     expect(bar).not.toHaveTextContent('DOE');
     expect(bar).not.toHaveTextContent('01/05/1980');
@@ -172,10 +172,11 @@ describe('ClinicalContextBar', () => {
     const detailsBtn = screen.getAllByRole('button', { name: 'View patient details' })[0];
     fireEvent.click(detailsBtn);
 
-    // Popover must also redact patient identity
+    // Popover must also redact patient identity — including the visit date
     expect(screen.queryByText('DOE, Jane')).not.toBeInTheDocument();
     expect(screen.queryByText('MrN00aB1')).not.toBeInTheDocument();
     expect(screen.queryByText('01/05/1980')).not.toBeInTheDocument();
     expect(screen.queryByText('12/06/2025')).not.toBeInTheDocument();
+    expect(screen.queryByText('18/03/2026')).not.toBeInTheDocument();
   });
 });

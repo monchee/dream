@@ -1,12 +1,13 @@
 import React from 'react';
 import {
+  Button,
   Input,
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../../../../components/ui';
-import { X, Plus, Check, ChevronDown } from 'lucide-react';
+import { X, Plus, Check, ChevronDown, ClipboardList } from 'lucide-react';
 import { DrugTestRow, DrugProtocol } from '@shared/types';
 import { CATEGORY_THEMES, DEFAULT_THEME, SKIN_TEST_POSITIVE_THRESHOLD } from '@shared/utils/constants';
 import { CompactActionButton } from '@shared/components/controls';
@@ -21,6 +22,10 @@ interface DrugTestGridProps {
   onRemove: (index: number) => void;
   onAddCustomIdtStep: (rowIndex: number) => void;
   onRemoveCustomIdtStep: (rowIndex: number, stepIndex: number) => void;
+  /** R1: hides protocol switching, custom concentrations, and notes so the record lane stays lean. */
+  planDetailsVisible?: boolean;
+  /** Opens the testing-plan lane; used by the empty state and the custom-drug hint. */
+  onOpenPlan?: () => void;
 }
 
 const preventNegativeInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -67,10 +72,14 @@ interface DrugRowProps {
   onRemove: (index: number) => void;
   onAddCustomIdtStep: (rowIndex: number) => void;
   onRemoveCustomIdtStep: (rowIndex: number, stepIndex: number) => void;
+  /** R1: protocol switching, custom concentrations, and notes are plan-lane content, hidden while recording. */
+  planDetailsVisible: boolean;
+  onOpenPlan?: () => void;
 }
 
 const DrugRow = React.memo(({
   row, index, protocol, allProtocols, drugToCategoryMap, onUpdate, onSelectProtocol, onRemove, onAddCustomIdtStep, onRemoveCustomIdtStep,
+  planDetailsVisible, onOpenPlan,
 }: DrugRowProps) => {
   const protocolIndex = row.protocolIndex ?? 0;
   const category = drugToCategoryMap[row.drugName] || 'Others';
@@ -100,7 +109,7 @@ const DrugRow = React.memo(({
             {row.drugName}
           </span>
         )}
-        {row.drugName !== 'Other' && allProtocols.length > 1 && (
+        {planDetailsVisible && row.drugName !== 'Other' && allProtocols.length > 1 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -137,8 +146,18 @@ const DrugRow = React.memo(({
         </CompactActionButton>
       </div>
 
-      {/* Custom drug protocol configuration */}
-      {row.drugName === 'Other' && (
+      {/* Custom drug protocol configuration (plan-lane content) */}
+      {row.drugName === 'Other' && !planDetailsVisible && (
+        <button
+          type="button"
+          onClick={onOpenPlan}
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors min-h-[44px] xl:min-h-0 w-fit"
+        >
+          <ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />
+          Concentrations not set — open the testing plan to configure this custom drug
+        </button>
+      )}
+      {planDetailsVisible && row.drugName === 'Other' && (
         <div className="border border-dashed border-border p-2 space-y-2 bg-muted/30">
           <div className="flex items-center gap-2">
             <span className="section-label shrink-0 w-7">SPT</span>
@@ -256,18 +275,22 @@ const DrugRow = React.memo(({
         ))}
       </div>
 
-      {/* Notes */}
-      <label htmlFor={`drug-notes-${index}`} className="sr-only">
-        {`Notes for ${row.drugName === 'Other' ? (row.customName || 'custom drug') : row.drugName}`}
-      </label>
-      <Input
-        id={`drug-notes-${index}`}
-        aria-label={`Notes for ${row.drugName === 'Other' ? (row.customName || 'custom drug') : row.drugName}`}
-        className="h-11 xl:h-8 text-xs text-foreground placeholder:text-muted-foreground rounded-none"
-        placeholder="Notes..."
-        value={row.notes || ''}
-        onChange={(e) => onUpdate(index, 'notes', e.target.value)}
-      />
+      {/* Notes (plan-lane content) */}
+      {planDetailsVisible && (
+        <>
+          <label htmlFor={`drug-notes-${index}`} className="sr-only">
+            {`Notes for ${row.drugName === 'Other' ? (row.customName || 'custom drug') : row.drugName}`}
+          </label>
+          <Input
+            id={`drug-notes-${index}`}
+            aria-label={`Notes for ${row.drugName === 'Other' ? (row.customName || 'custom drug') : row.drugName}`}
+            className="h-11 xl:h-8 text-xs text-foreground placeholder:text-muted-foreground rounded-none"
+            placeholder="Notes..."
+            value={row.notes || ''}
+            onChange={(e) => onUpdate(index, 'notes', e.target.value)}
+          />
+        </>
+      )}
     </div>
   );
 });
@@ -276,13 +299,30 @@ DrugRow.displayName = 'DrugRow';
 
 export const DrugTestGrid: React.FC<DrugTestGridProps> = ({
   testPanel, drugToCategoryMap, onUpdate, onSelectProtocol, onRemove, onAddCustomIdtStep, onRemoveCustomIdtStep,
+  planDetailsVisible, onOpenPlan,
 }) => {
   if (testPanel.length === 0) {
     return (
-      <EmptyState
-        title="No drugs selected. Choose a category above to begin."
-        className="bg-card rounded-none border border-dashed border-border"
-      />
+      <div className="bg-card rounded-none border border-dashed border-border">
+        <EmptyState
+          title="No drugs selected. Choose a category above to begin."
+          className="border-0 bg-transparent"
+        />
+        {onOpenPlan && (
+          <div className="pb-5 flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onOpenPlan}
+              className="min-h-[44px] xl:min-h-0 rounded-none"
+            >
+              <ClipboardList className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
+              Open the testing plan
+            </Button>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -304,6 +344,8 @@ export const DrugTestGrid: React.FC<DrugTestGridProps> = ({
             onRemove={onRemove}
             onAddCustomIdtStep={onAddCustomIdtStep}
             onRemoveCustomIdtStep={onRemoveCustomIdtStep}
+            planDetailsVisible={planDetailsVisible ?? true}
+            onOpenPlan={onOpenPlan}
           />
         );
       })}
