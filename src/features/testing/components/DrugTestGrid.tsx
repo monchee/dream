@@ -9,6 +9,7 @@ import {
 import { X, Plus, Check, ChevronDown } from 'lucide-react';
 import { DrugTestRow, DrugProtocol } from '@shared/types';
 import { CATEGORY_THEMES, DEFAULT_THEME, SKIN_TEST_POSITIVE_THRESHOLD } from '@shared/utils/constants';
+import { CompactActionButton } from '@shared/components/controls';
 import { getSkinProtocolsForDrug } from '@shared/data/drugMasterlist';
 import { EmptyState } from '@shared/components/states';
 
@@ -126,15 +127,14 @@ const DrugRow = React.memo(({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <button
-          type="button"
+        <CompactActionButton
           onClick={() => onRemove(index)}
-          aria-label={`Remove ${row.drugName} from testing panel`}
-          className={`shrink-0 text-muted-foreground/60 hover:text-destructive transition-colors p-2 -m-1 min-h-[44px] min-w-[44px] flex items-center justify-center xl:min-h-0 xl:min-w-0 xl:m-0 xl:p-1 ${row.drugName === 'Other' ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
-          title="Remove drug"
+          label={`Remove ${row.drugName} from testing panel`}
+          tooltip="Remove drug"
+          className={`shrink-0 p-2 -m-1 xl:m-0 xl:p-1 ${row.drugName === 'Other' ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
         >
           <X className="w-4 h-4" />
-        </button>
+        </CompactActionButton>
       </div>
 
       {/* Custom drug protocol configuration */}

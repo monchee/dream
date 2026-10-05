@@ -3,6 +3,7 @@ import { X, Filter, Calendar, Building2, Activity, Search as SearchIcon } from '
 import { Button, Badge, Input, Label, Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui';
 import { AdvancedSearchFilters as Filters } from '../hooks/useAdvancedSearch';
 import { DRUG_CATEGORIES, CATEGORY_THEMES } from '@shared/utils/constants';
+import { FilterClearButton } from '@shared/components/controls';
 
 interface AdvancedSearchFiltersProps {
   filters: Filters;
@@ -304,14 +305,11 @@ export const AdvancedSearchPanel: React.FC<Omit<AdvancedSearchFiltersProps, 'isE
                 className="pl-9 pr-11 xl:pr-9 h-11 xl:h-8 text-xs rounded-none border-border focus-visible:ring-1 focus-visible:ring-primary bg-background w-full shadow-sm"
               />
               {agentSearch && (
-                <button
-                  type="button"
-                  onClick={() => setAgentSearch('')}
-                  aria-label="Clear agent search"
-                  className="absolute right-1 xl:right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground flex items-center justify-center min-h-[44px] min-w-[44px] xl:min-h-0 xl:min-w-0 rounded-none hover:bg-muted transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <FilterClearButton
+                  label="Clear agent search"
+                  onClear={() => setAgentSearch('')}
+                  className="absolute right-1 xl:right-2 top-1/2 -translate-y-1/2 hover:bg-muted"
+                />
               )}
             </div>
             

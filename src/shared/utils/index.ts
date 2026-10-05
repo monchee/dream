@@ -6,7 +6,6 @@ export { parsePatientTimeline, type TimelineEvent } from './timelineUtils';
 export { getOutstandingDocuments, type OutstandingDocument } from './patientStatus';
 export { deriveHighRiskChips } from './highRiskContext';
 export { parseRedcapCSV, decodeCsvBytes, normalizeHeader, type CsvParseResult } from './csvUtils';
-export { animationConfig, transitions } from './animations';
 export { showToast } from './toast-config';
 export {
   ACTIVE_REPORT_TTL_MS, ACTIVE_REPORT_KEY, TESTING_DRAFT_KEY, PATIENT_DB_KEY, PATIENT_DATA_KEYS,

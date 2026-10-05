@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/components/ui';
-import { Activity, Check, Plus, Search, X } from 'lucide-react';
+import { Activity, Check, Plus, Search } from 'lucide-react';
 import { LogFormData } from '@shared/types';
 import { CATEGORY_THEMES, DEFAULT_THEME } from '@shared/utils/constants';
+import { FilterClearButton } from '@shared/components/controls';
 import { DrugTestGrid } from './DrugTestGrid';
 import { preventNegativeInput } from './TestingLogFormSectionShared';
 
@@ -80,14 +81,11 @@ export function DrugTestPanelSection({
               className="h-11 xl:h-8 pl-8 pr-11 xl:pr-8 text-xs rounded-none bg-background text-foreground"
             />
             {drugFilter && (
-              <button
-                type="button"
-                onClick={() => setDrugFilter('')}
-                aria-label="Clear drug filter"
-                className="absolute right-1.5 xl:right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[44px] min-w-[44px] xl:min-h-0 xl:min-w-0 flex items-center justify-center"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+              <FilterClearButton
+                label="Clear drug filter"
+                onClear={() => setDrugFilter('')}
+                className="absolute right-1.5 xl:right-2 top-1/2 -translate-y-1/2 focus-visible:ring-1 focus-visible:ring-ring"
+              />
             )}
           </div>
 

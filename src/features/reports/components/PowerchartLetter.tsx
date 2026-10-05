@@ -226,14 +226,14 @@ const PowerchartLetter: React.FC<PowerchartLetterProps> = ({ data, patient, acti
         )}
 
         {/* MDT Signature */}
-        <div className="pt-6 border-t border-border print:pt-1 print:break-inside-avoid">
+        <div className="pt-6 border-t border-border print:pt-1 print-signature-block">
           <p className="text-sm font-semibold text-foreground/90 print:text-xs">
             Allergy MDT: Dr. D Zalcberg, Dr. A Stoyanov and CNC K. Wells.
           </p>
         </div>
 
         {/* Print signature lines */}
-        <div className="hidden print:flex print:pt-2 justify-between gap-12 print:break-inside-avoid">
+        <div className="hidden print:flex print:pt-2 justify-between gap-12 print-signature-block">
           <div className="flex-1 border-t border-black pt-1">
             <p className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">Clinician Signature</p>
           </div>

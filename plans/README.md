@@ -14,7 +14,7 @@ before starting, honor its STOP conditions, and update your row when done.
 |------|-------|----------|--------|------------|--------|
 | 001 | CSV quote-aware record splitting + coverage gate | P1 | M | — | DONE |
 | 002 | Sentry PHI scrub hardening | P2 | S | — | DONE |
-| 003 | DREAM safety, refactor, and redesign shape specifications | P1 | L | — | IN PROGRESS |
+| 003 | DREAM safety, refactor, and redesign shape specifications | P1 | L | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) |
 REJECTED (with one-line rationale)
