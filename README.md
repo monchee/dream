@@ -17,7 +17,7 @@ A private clinical Progressive Web App for the Royal Prince Alfred Hospital Depa
 - **Repository:** private/internal clinical tooling
 - **Production host:** Cloudflare Pages
 - **Release notes:** [GitHub Releases](https://github.com/monchee/dream/releases)
-- **Data model:** local-first browser processing, with optional deidentified Supabase research submission
+- **Data model:** fully local-first browser processing; no clinical data leaves the device
 
 ## Features
 
@@ -41,10 +41,9 @@ A private clinical Progressive Web App for the Royal Prince Alfred Hospital Depa
 - Repeat patient identity in print headers/footers so separated pages remain identifiable.
 - Copy eMR-ready text from reports where appropriate.
 
-### Research and Review
+### Review
 - View dashboard summaries of recent clinical activity and imported patient data.
 - Use the dashboard worklist to track referral, plan-drafted, testing, and reported status and filter patients who need action.
-- Optionally submit only deidentified research payloads to a configured Supabase project.
 - Track app changes through the in-app changelog and Quick Start "What's New" modal.
 - Curate short changelog summaries with `Summary:` lines in `CHANGELOG.md`.
 
@@ -52,7 +51,7 @@ A private clinical Progressive Web App for the Royal Prince Alfred Hospital Depa
 
 DREAM is designed as local-first clinical support tooling. During normal clinical use, identifiable patient data is processed in the browser from local REDCap exports and is not transmitted to an application backend.
 
-The research submission path is the explicit exception: when configured and selected by the clinician, only the deidentified research payload is sent to the configured Supabase project. Do not commit real patient data, REDCap exports, screenshots containing identifiers, or generated clinical documents to this repository.
+Do not commit real patient data, REDCap exports, screenshots containing identifiers, or generated clinical documents to this repository.
 
 The screen lock is a shoulder-surfing control only. It is not a substitute for device, network, REDCap, or institutional access controls.
 
@@ -64,7 +63,6 @@ The screen lock is a shoulder-surfing control only. It is not a substitute for d
 - **Icons:** Lucide React
 - **Testing:** Vitest, Testing Library, Playwright, axe-core
 - **PWA:** vite-plugin-pwa and Workbox
-- **Optional research storage:** Supabase
 - **Hosting:** Cloudflare Pages via Wrangler
 
 ## Local Development
@@ -146,7 +144,6 @@ src/
 │   ├── testing/         # Testing plans and clinical test logging
 │   ├── reports/         # Clinical reports, handouts, and letters
 │   ├── dashboard/       # Clinical dashboard and CSV upload
-│   ├── research/        # Optional deidentified research submission/review
 │   └── info-pages/      # About, FAQ, contact, legal, and changelog pages
 ├── core/                # App shell, routing, layout, and help modal
 ├── shared/              # Cross-feature hooks, types, utilities, and data
@@ -159,7 +156,7 @@ src/
 - Maintainer runbook and testing scripts are documented in [MAINTAINERS.md](MAINTAINERS.md).
 - Succession inventory, credential rotation, and continuity plans are documented in [HANDOVER.md](HANDOVER.md).
 - Branch protection is not configured because GitHub reports it is unavailable for this private repository without GitHub Pro.
-- Production assets are split into dedicated vendor chunks (React runtime, Supabase, Sentry, Radix UI, forms, and icons) so production builds stay well within chunk-size limits without warnings.
+- Production assets are split into dedicated vendor chunks (React runtime, Sentry, Radix UI, forms, and icons) so production builds stay well within chunk-size limits without warnings.
 - `/manifest.webmanifest` is generated from the Vite PWA configuration. The Vite config is the manifest source of truth.
 
 ## Internal Use and Licensing

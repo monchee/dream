@@ -23,9 +23,7 @@ Report concerns through the internal DREAM development/support channel or the RP
 
 ## Security Model
 
-DREAM is local-first. During normal clinical use, identifiable patient data is processed in the browser from local REDCap exports and is not sent to an application backend.
-
-The optional research submission path sends only the deidentified research payload to the configured Supabase project when explicitly used by the clinician.
+DREAM is local-first. During normal clinical use, identifiable patient data is processed in the browser from local REDCap exports and is not sent to an application backend. The optional research submission path was removed in v0.91.0; no clinical data leaves the device through the application.
 
 The app's screen lock reduces shoulder-surfing risk on shared workstations. It is not an authentication system and does not replace institutional device, network, REDCap, or cloud access controls.
 

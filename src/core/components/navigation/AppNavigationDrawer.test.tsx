@@ -49,7 +49,6 @@ describe('AppNavigationDrawer', () => {
     // Navigation links
     expect(screen.getByRole('link', { name: /^Home/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Dashboard/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^Research/i })).toBeInTheDocument();
 
     // Verify duplicated theme toggle is NOT in the drawer
     expect(screen.queryByText(/Light Theme/i)).not.toBeInTheDocument();

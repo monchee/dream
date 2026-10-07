@@ -69,22 +69,22 @@ describe('OutboundActionDialog', () => {
     expect(document.activeElement).toBe(el);
   });
 
-  it('moves focus to the research status banner when the trigger was removed (R3)', async () => {
+  it('restores focus to the email trigger when the dialog unmounts on close (R3)', async () => {
     const onOpenChange = vi.fn();
     const { rerender } = render(
-      <button type="button" id="research-trigger">Save to Research Database</button>
+      <button type="button" id="email-trigger">Send via Email</button>
     );
 
-    const el = document.getElementById('research-trigger') as HTMLButtonElement;
+    const el = document.getElementById('email-trigger') as HTMLButtonElement;
     el.focus();
 
     rerender(
       <>
-        <button type="button" id="research-trigger">Save to Research Database</button>
+        <button type="button" id="email-trigger">Send via Email</button>
         <OutboundActionDialog
           open={true}
           onOpenChange={onOpenChange}
-          actionType="research"
+          actionType="email"
           artifactTitle="Clinical Report"
           workContext={mockContext}
           onConfirm={vi.fn()}
@@ -92,17 +92,14 @@ describe('OutboundActionDialog', () => {
       </>
     );
 
-    // Successful submission replaces the trigger with a status banner, then
-    // the dialog unmounts — production's conditional-render close path.
     rerender(
       <>
-        <div id="research-submission-status" tabIndex={-1}>Submitted to Research Database</div>
+        <button type="button" id="email-trigger">Send via Email</button>
       </>
     );
 
     await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-    const status = document.getElementById('research-submission-status');
-    expect(document.activeElement).toBe(status);
+    expect(document.activeElement).toBe(el);
   });
 
   it('triggers onConfirm when confirm button is clicked', async () => {
@@ -123,34 +120,6 @@ describe('OutboundActionDialog', () => {
     fireEvent.click(confirmBtn);
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
-  });
-
-  it('displays research transmitted field categories and prevents duplicate submission', () => {
-    const onConfirm = vi.fn();
-    render(
-      <OutboundActionDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        actionType="research"
-        artifactTitle="Research Payload"
-        workContext={mockContext}
-        onConfirm={onConfirm}
-        researchAlreadySubmitted={true}
-      />
-    );
-
-    expect(screen.getByText(/Transmitted Field Categories:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tested drug names and skin\/intradermal test/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Patient direct identifiers \(name, REDCap ID, DOB, contacts\) are omitted/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/De-identified \(patient direct identifiers: name, REDCap ID, DOB, contacts omitted\)/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Fully De-identified/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/anonymised/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/This record has already been submitted/i)).toBeInTheDocument();
-
-    const confirmBtn = screen.getByRole('button', { name: /Already Submitted/i });
-    expect(confirmBtn).toBeDisabled();
-    fireEvent.click(confirmBtn);
-    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('calls onOpenChange(false) when cancel button is clicked without side effects', () => {

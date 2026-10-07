@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   TestTube2,
   FileText,
-  Database,
   Info,
   HelpCircle,
   FlaskConical,
@@ -37,7 +36,6 @@ export const SCREEN_URL_MAP: Record<string, Screen> = {
   '/summary': Screen.SUMMARY,
   '/patient-summary': Screen.PATIENT_SUMMARY,
   '/print-plan': Screen.PRINT_PLAN,
-  '/research': Screen.RESEARCH,
   '/about': Screen.ABOUT,
   '/faq': Screen.FAQ,
   '/drug-reference': Screen.DRUG_REFERENCE,
@@ -128,12 +126,6 @@ export function getContextualNavItems(
 }
 
 export const UTILITY_NAV_ITEMS: NavigationItem[] = [
-  {
-    screen: Screen.RESEARCH,
-    label: 'Research',
-    href: '/research',
-    icon: Database,
-  },
   {
     screen: Screen.ABOUT,
     label: 'About',

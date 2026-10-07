@@ -8,8 +8,6 @@ const envSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
   VITE_ENVIRONMENT: z.string().default('development'),
-  VITE_SUPABASE_URL: z.string().url().optional(),
-  VITE_SUPABASE_ANON_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse(import.meta.env);

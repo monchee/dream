@@ -52,12 +52,12 @@ test.describe('UI/UX remediation regressions', () => {
     await expect(page.getByRole('heading', { name: 'Clinical Dashboard' })).toBeVisible();
   });
 
-  test('auto-open Get Started does not redirect direct Research route', async ({ page }) => {
+  test('auto-open Get Started does not redirect direct About route', async ({ page }) => {
     await unlockAndSuppressVersionBanner(page);
-    await page.goto(appPath('/research'));
+    await page.goto(appPath('/about'));
 
-    await expect(page).toHaveURL(/\/research$/);
-    await expect(page.getByRole('heading', { name: 'Research Database', exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(page.getByRole('heading', { name: 'The DREAM App', exact: true })).toBeVisible();
   });
 
   test('mobile primary nav exposes the active route label', async ({ page }) => {

@@ -1,3 +1,19 @@
+## [0.91.0] — 2026-10-06 (Less To Protect)
+
+Summary: The optional research database feature is removed. It was never used in clinic, and the whole-project assessment flagged its Supabase configuration — anonymous read/delete on all submissions, with REDCap IDs in the payload — as the product's highest-priority privacy risk. Rather than patching permissions for an unused feature, the feature is gone: the Supabase client, research screens and navigation, submission path, and migration scripts are deleted, and the `@supabase/supabase-js` dependency is dropped. This resolves the long-standing open security issue documented in HANDOVER.md by deletion. Clinical workflows were always local-first and are unaffected; report outputs are now local print, local copy, and email.
+
+### Removed
+- **The research database and submission feature.** The Research screen, sidebar entry, `/research` route, "Save to Research Database" action, confirmation dialog, payload builder, Supabase client (`src/lib/supabase.ts`), environment variables, migration scripts, and the `@supabase/supabase-js` dependency are all removed.
+- **Supabase from the Content-Security-Policy.** The production and dev CSPs no longer allow connections to `*.supabase.co`, and the Supabase vendor chunk is gone from the build.
+- **The research tier from the report screen's risk-graded output actions.** Outputs are now: local print, local copy, and email to the allergy-nurse mailbox — each still stating its data boundary.
+
+### Changed
+- **Documentation updated to match reality.** PRODUCT.md no longer lists research submission as a capability; HANDOVER.md marks the Supabase section as removed and the previously open security issue as resolved; README and SECURITY.md now state that no clinical data leaves the device through the application.
+- **Operational note:** if a Supabase project was provisioned for this app, it should be paused or deleted from the Supabase dashboard — the repository no longer references it.
+
+### Checked, no change needed
+- **Clinical workflows are untouched.** REDCap import, testing, reports, print policy, drafts, and the PIN lock are unchanged; the full unit suite (908 after removing research's own tests), e2e suite, and visual snapshots pass.
+
 ## [0.90.1] — 2026-10-06 (The Release Guard)
 
 Summary: Tooling release. Version and changelog bumps are now enforced by CI and the build itself, closing the gap where three shipped merges (this release's own safety pass and redesigns included) went out still carrying the previous version. No application behaviour changed.

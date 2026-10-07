@@ -127,7 +127,7 @@ export default defineConfig(() => {
       headers: {
         'Content-Security-Policy': [
           "default-src 'self'",
-          "connect-src 'self' ws: https://*.supabase.co wss://*.supabase.co https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
+          "connect-src 'self' ws: https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
           // Dev server only: Vite injects an inline React Refresh preamble and uses
           // eval for HMR, so 'unsafe-inline'/'unsafe-eval' are required here. Production
           // CSP (public/_headers) stays strict — script-src 'self'.
@@ -163,9 +163,6 @@ export default defineConfig(() => {
             if (id.includes('node_modules')) {
               if (id.includes('@sentry')) {
                 return 'sentry-vendor';
-              }
-              if (id.includes('@supabase')) {
-                return 'supabase-vendor';
               }
               if (id.includes('@radix-ui')) {
                 return 'radix-vendor';

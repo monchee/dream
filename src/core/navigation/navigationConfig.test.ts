@@ -4,7 +4,6 @@ import {
   screenFromPath,
   pathFromScreen,
   PRIMARY_NAV_ITEMS,
-  UTILITY_NAV_ITEMS,
   FOOTER_LEGAL_ITEMS,
   getContextualNavItems,
   isReportActive,
@@ -20,7 +19,6 @@ describe('navigationConfig', () => {
       expect(screenFromPath('/dashboard')).toBe(Screen.DASHBOARD);
       expect(screenFromPath('/testing')).toBe(Screen.TESTING);
       expect(screenFromPath('/summary')).toBe(Screen.SUMMARY);
-      expect(screenFromPath('/research')).toBe(Screen.RESEARCH);
       expect(screenFromPath('/changelog')).toBe(Screen.CHANGELOG);
       expect(screenFromPath('/about')).toBe(Screen.ABOUT);
       expect(screenFromPath('/faq')).toBe(Screen.FAQ);
@@ -49,7 +47,6 @@ describe('navigationConfig', () => {
       expect(pathFromScreen(Screen.DASHBOARD)).toBe('/dashboard');
       expect(pathFromScreen(Screen.TESTING)).toBe('/testing');
       expect(pathFromScreen(Screen.SUMMARY)).toBe('/summary');
-      expect(pathFromScreen(Screen.RESEARCH)).toBe('/research');
     });
   });
 
@@ -146,15 +143,6 @@ describe('navigationConfig', () => {
   });
 
   describe('Utility Navigation and Footer items', () => {
-    it('contains Research in Utility navigation and never in Primary navigation', () => {
-      const hasResearchInPrimary = PRIMARY_NAV_ITEMS.some(item => item.screen === Screen.RESEARCH);
-      expect(hasResearchInPrimary).toBe(false);
-
-      const researchItem = UTILITY_NAV_ITEMS.find(item => item.screen === Screen.RESEARCH);
-      expect(researchItem).toBeDefined();
-      expect(researchItem?.label).toBe('Research');
-    });
-
     it('contains all required legal/governance items for the reduced footer', () => {
       const legalScreens = FOOTER_LEGAL_ITEMS.map(item => item.screen);
       expect(legalScreens).toEqual([

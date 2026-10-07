@@ -16,7 +16,6 @@ export enum Screen {
   TERMS_OF_USE = 'terms-of-use',
   TECHNICAL_DOCUMENTATION = 'technical-documentation',
   DISCLAIMER = 'disclaimer',
-  RESEARCH = 'research'
 }
 
 export interface CategoryTheme {

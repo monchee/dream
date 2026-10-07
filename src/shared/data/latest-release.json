@@ -1,5 +1,9 @@
 [
   {
+    "version": "v0.91.0",
+    "codename": "Less To Protect"
+  },
+  {
     "version": "v0.90.1",
     "codename": "The Release Guard"
   },
@@ -14,9 +18,5 @@
   {
     "version": "v0.79.17",
     "codename": "A Background That Breathes"
-  },
-  {
-    "version": "v0.79.16",
-    "codename": "One Line, Four Fields"
   }
 ]

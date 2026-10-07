@@ -28,7 +28,6 @@ describe('AppNavigationSections', () => {
 
     // Group 3: Reference & Support
     expect(screen.getByRole('navigation', { name: /Reference and support navigation/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^Research/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^About/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^FAQ/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Drug Reference/i })).toBeInTheDocument();

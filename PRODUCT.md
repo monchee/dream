@@ -16,7 +16,7 @@ DREAM (Drug Reaction Evaluation & Anaesthetic Management) is a local-first clini
 
 ## Positioning
 
-Local-first clinical decision-support and documentation workbench built for perioperative anaesthetic drug allergy investigations, executing clinical calculations, testing workflows, and report generation locally in the browser with optional deidentified research submission.
+Local-first clinical decision-support and documentation workbench built for perioperative anaesthetic drug allergy investigations, executing clinical calculations, testing workflows, and report generation locally in the browser. No clinical data leaves the device.
 
 ## Operating Context
 
@@ -25,7 +25,6 @@ Hospital clinic workstations, allergy procedure rooms, and shared clinical termi
 ## Capabilities and Constraints
 
 - Local-first architecture: All patient record parsing, test calculations, report generation, and session state remain in local browser storage (sessionStorage/localStorage with configurable TTL purge).
-- Optional deidentified research submission: Aggregated, deidentified clinical reaction and skin testing data can be submitted to research registries only upon explicit clinical action with confirmation.
 - Shoulder-surfing protection: 4-digit PIN screen-lock to shield patient information on shared hospital computers without replacing enterprise infrastructure access controls.
 - Protocol reference: Documented skin prick test (SPT) and intradermal test (IDT) concentrations and dilution sequences.
 - Print-formatted outputs: A4 printable clinical consultation letters, patient handouts, and nurse testing sheets structured with dedicated print page-break styling.
