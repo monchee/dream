@@ -9,10 +9,6 @@ vi.mock('@core/hooks/useAnaestheticApp', () => ({
   useAnaestheticApp: vi.fn(),
 }));
 
-vi.mock('@features/research/hooks/useResearchSubmit', () => ({
-  useResearchSubmit: () => ({ reset: vi.fn() }),
-}));
-
 vi.mock('@core/components/GetStartedModal', () => ({
   GetStartedModal: () => null,
 }));

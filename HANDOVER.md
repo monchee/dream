@@ -12,7 +12,7 @@ This document provides a comprehensive inventory of services, secrets, external 
 | **Cloudflare Pages** (`dream` project) | `monchee` (Personal Account) | **Yes** (for hosting live PWA) | Static hosting platform serving the web application. |
 | **Custom Domain** (`dream.yuson.au`) | `monchee` (Personal Domain) | **No** (fallback URL available) | Custom DNS domain. **Succession risk:** personal domain ownership. |
 | **Sentry** (`monchee` / `dream`) | `monchee` (Personal Account) | **No** (optional monitoring) | Error monitoring and performance tracing. No-ops if DSN is omitted. |
-| **Supabase** (`research_submissions`) | `monchee` (Personal Account) | **No** (optional research storage) | Database for deidentified research submissions only. Core app is local-first. |
+| ~~**Supabase**~~ (research database) | — | Removed v0.91.0 | Feature retired unused; see section 5. If a Supabase project was provisioned, delete it from the Supabase dashboard. |
 | **Access PIN** (`PasswordGate.tsx`) | Hardcoded in repository | **Yes** (deterrent gate) | Shoulder-surfing deterrent PIN (`2050`). Not a security boundary. |
 
 ---
@@ -87,29 +87,11 @@ This document provides a comprehensive inventory of services, secrets, external 
 
 ---
 
-### 5. Supabase (Research Database)
-- **Current State**: Integrated in `src/lib/supabase.ts` and consumed by `src/features/research/services/ResearchService.ts`.
-- **Runtime Behavior** (verified in `src/lib/supabase.ts` and `src/features/research/services/ResearchService.ts`):
-  - Configured via `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-  - Exported boolean `isSupabaseConfigured` gates research features.
-  - **Clinical Workflows are Independent**: All core clinical functions (REDCap import, patient review, testing plan generation, test recording, handouts, clinical reports) run local-first in browser memory and local storage. If Supabase is unconfigured or unavailable, the app remains fully functional for clinic operations; only research submission features are disabled.
-- **Known Open Security Issue**:
-  - **Location**: `supabase/migrations/001_research_submissions.sql`
-  - **Issue**: The migration script configures the following Row Level Security (RLS) policies:
-    ```sql
-    CREATE POLICY "anon_insert" ON research_submissions FOR INSERT TO anon WITH CHECK (true);
-    CREATE POLICY "anon_select" ON research_submissions FOR SELECT TO anon USING (true);
-    CREATE POLICY "anon_delete" ON research_submissions FOR DELETE TO anon USING (true);
-    ```
-  - **Impact**: The public `anon` role is granted `INSERT`, `SELECT`, and `DELETE` access to all rows in `research_submissions`. Anyone possessing the public `VITE_SUPABASE_ANON_KEY` can read, modify, or delete every research submission in the database.
-  - **Remediation Plan (to be implemented separately)**: Replace the permissive `anon_select` and `anon_delete` policies with authenticated access or restricted service-role access (e.g., allow `anon` INSERT only, with SELECT/DELETE restricted to authenticated clinic administrators).
-- **Rotation / Replacement**:
-  - Create a new Supabase project.
-  - Run database migration scripts in `supabase/migrations/` (with updated RLS policies).
-  - Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in environment variables.
-
----
-
+### 5. Supabase (Research Database) — REMOVED
+- **Removed in v0.91.0.** The optional research submission feature was retired unused: the Supabase client, research feature folder, research screen and navigation, payload submission path, and the `supabase/` migration scripts are all deleted, and the `@supabase/supabase-js` dependency is dropped.
+- **This resolves the previously documented open security issue** (anonymous SELECT/DELETE on `research_submissions`): there is no research table, client, or code path left in the product.
+- **Operational follow-up (outside the repo):** the Supabase *project* itself, if one was provisioned, should be paused or deleted from the Supabase dashboard — the repository can no longer reach it.
+- All clinical workflows remain local-first and were never dependent on Supabase.
 ### 6. Screen Lock Access PIN
 - **Current State**: Hardcoded constant in `src/core/components/PasswordGate.tsx` line 9:
   ```typescript

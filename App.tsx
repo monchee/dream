@@ -11,11 +11,9 @@ import { reportWebVitals } from './src/lib/analytics';
 import { initSentry } from './src/lib/sentry';
 import { findInfoPageRoute } from '@core/routes/infoPageConfig';
 import { GetStartedModal } from '@core/components/GetStartedModal';
-import { useResearchSubmit } from '@features/research/hooks/useResearchSubmit';
 import { DashboardScreen } from '@core/screens/DashboardScreen';
 import { InfoPageScreen } from '@core/screens/InfoPageScreen';
 import { LogScreen } from '@core/screens/LogScreen';
-import { ResearchScreen } from '@core/screens/ResearchScreen';
 import { SummaryScreen } from '@core/screens/SummaryScreen';
 import { PrintPlanScreen, TestingScreen } from '@core/screens/TestingScreens';
 import { ScreenUnavailable } from '@core/components/ScreenUnavailable';
@@ -67,7 +65,6 @@ export function AnaestheticLogApp() {
   const [csvUploadSheetOpen, setCsvUploadSheetOpen] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [getStartedOpen, setGetStartedOpen] = useState(false);
-  const research = useResearchSubmit();
 
   const hasCheckedGetStartedRef = React.useRef(false);
   useEffect(() => {
@@ -98,7 +95,6 @@ export function AnaestheticLogApp() {
   };
 
   const resetToLog = () => {
-    research.reset();
     resetForm();
     handleNavigate(Screen.LOG);
   };
@@ -185,7 +181,6 @@ export function AnaestheticLogApp() {
             activeReportSavedAt={activeReportSavedAt}
             activeReportTab={activeReportTab}
             setActiveReportTab={setActiveReportTab}
-            research={research}
             onExit={resetToLog}
             onStartNewLog={resetToLog}
           />
@@ -241,10 +236,6 @@ export function AnaestheticLogApp() {
           onSubmit={handleSubmit}
         />
       );
-    }
-
-    if (screen === Screen.RESEARCH) {
-      return <ResearchScreen chrome={chrome} />;
     }
 
     return (

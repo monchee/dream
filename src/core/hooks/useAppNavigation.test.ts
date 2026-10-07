@@ -37,16 +37,6 @@ describe('useAppNavigation', () => {
     expect(result.current.hrefFor(Screen.DASHBOARD)).toBe('/dashboard');
   });
 
-  it('should initialize research from direct URL', () => {
-    vi.stubGlobal('location', {
-      ...originalLocation,
-      pathname: '/research',
-    });
-
-    const { result } = renderHook(() => useAppNavigation());
-    expect(result.current.screen).toBe(Screen.RESEARCH);
-  });
-
   it('should fall back to Screen.LOG for unknown paths', () => {
     vi.stubGlobal('location', {
       ...originalLocation,
@@ -362,7 +352,7 @@ describe('useAppNavigation', () => {
     act(() => {
       vi.stubGlobal('location', {
         ...originalLocation,
-        pathname: '/research',
+        pathname: '/about',
       });
       window.dispatchEvent(
         new PopStateEvent('popstate', {
@@ -371,6 +361,6 @@ describe('useAppNavigation', () => {
       );
     });
 
-    expect(result.current.screen).toBe(Screen.RESEARCH);
+    expect(result.current.screen).toBe(Screen.ABOUT);
   });
 });

@@ -12,14 +12,11 @@ import {
   Printer,
   Copy,
   Mail,
-  Database,
-  CheckCircle2,
-  ShieldAlert,
 } from 'lucide-react';
 import { ClinicalWorkContext } from '@shared/types/clinicalWorkContext';
 import { formatDate } from '@shared/utils';
 
-export type OutboundActionType = 'print' | 'copy' | 'email' | 'research';
+export type OutboundActionType = 'print' | 'copy' | 'email';
 
 export interface OutboundActionDialogProps {
   open: boolean;
@@ -35,19 +32,7 @@ export interface OutboundActionDialogProps {
   disclosureMode?: string;
   isRedacted?: boolean;
   onConfirm: () => Promise<void> | void;
-  researchAlreadySubmitted?: boolean;
 }
-
-const RESEARCH_FIELD_CATEGORIES = [
-  'Visit date',
-  'Control measurements (Histamine SPT, Saline SPT, Saline IDT)',
-  'Tested drug names and skin/intradermal test wheal measurements',
-  'Total drugs tested and positive test counts',
-  'Drug challenge flag, challenge drug, and challenge outcome',
-  'Reaction time, clinical symptoms, and intervention (when reaction occurred)',
-  'Assessment & clinical plan',
-  'App version and optional REDCap record ID (when present)',
-];
 
 export function OutboundActionDialog({
   open,
@@ -63,7 +48,6 @@ export function OutboundActionDialog({
   disclosureMode: propDisclosureMode,
   isRedacted = false,
   onConfirm,
-  researchAlreadySubmitted = false,
 }: OutboundActionDialogProps) {
   const [isBusy, setIsBusy] = useState(false);
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
@@ -71,21 +55,14 @@ export function OutboundActionDialog({
   // the output control that opened it is handled here.
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
-  // Restores focus to the control that opened the dialog; if that control was
-  // removed while the dialog was open (e.g. a successful research submission
-  // replaces its own button with a status banner), move focus to the status
-  // banner instead so focus never falls back to the document.
+  // Restores focus to the control that opened the dialog after it closes or
+  // unmounts (SummaryScreen renders this component conditionally).
   const restoreFocusToTrigger = () => {
     const target = returnFocusRef.current;
     returnFocusRef.current = null;
     if (!target) return;
     requestAnimationFrame(() => {
-      if (target.isConnected) {
-        target.focus();
-        return;
-      }
-      const fallback = document.getElementById('research-submission-status');
-      fallback?.focus?.();
+      if (target.isConnected) target.focus();
     });
   };
 
@@ -136,23 +113,13 @@ export function OutboundActionDialog({
           disclosure: propDisclosureMode || (isRedacted ? 'Redacted Email Body' : 'Standard Clinical Email Body'),
           description: 'Review the email recipient and bound patient identity before launching your email client.',
         };
-      case 'research':
-        return {
-          title: 'Confirm ANZTADC Research Submission',
-          icon: <Database className="w-5 h-5 text-primary" />,
-          confirmLabel: researchAlreadySubmitted ? 'Already Submitted' : 'Confirm & Submit to Research Registry',
-          destination: propDestination || 'ANZTADC Secure Research Database',
-          disclosure: propDisclosureMode || 'De-identified (patient direct identifiers: name, REDCap ID, DOB, contacts omitted)',
-          description:
-            'Confirm transmission of de-identified clinical testing results to the anaesthetic reaction registry. Patient direct identifiers (name, REDCap ID, DOB, contacts) are omitted prior to transmission.',
-        };
     }
   };
 
   const details = getActionDetails();
 
   const handleConfirm = async () => {
-    if (isBusy || (actionType === 'research' && researchAlreadySubmitted)) return;
+    if (isBusy) return;
     try {
       setIsBusy(true);
       await onConfirm();
@@ -224,31 +191,6 @@ export function OutboundActionDialog({
               <span className="font-medium text-foreground">{details.disclosure}</span>
             </div>
           </div>
-
-          {/* Special Research Details */}
-          {actionType === 'research' && (
-            <div className="space-y-2 border border-primary/20 bg-primary/5 p-3 rounded-none">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-                <ShieldAlert className="w-4 h-4" />
-                <span>Transmitted Field Categories:</span>
-              </div>
-              <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1 pl-1">
-                {RESEARCH_FIELD_CATEGORIES.map((cat, idx) => (
-                  <li key={idx}>{cat}</li>
-                ))}
-              </ul>
-              <p className="text-xs text-muted-foreground pt-1 border-t border-primary/10 italic">
-                Note: Patient direct identifiers (name, REDCap ID, DOB, contacts) are omitted.
-              </p>
-            </div>
-          )}
-
-          {actionType === 'research' && researchAlreadySubmitted && (
-            <div className="flex items-center gap-2 p-2 border border-status-success/30 bg-status-success/10 text-status-success text-xs font-medium rounded-none">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>This record has already been submitted to the research registry during this session.</span>
-            </div>
-          )}
         </div>
 
         <DialogFooter className="gap-2 border-t border-border pt-4 sm:justify-end">
@@ -265,7 +207,7 @@ export function OutboundActionDialog({
           <Button
             type="button"
             onClick={handleConfirm}
-            disabled={isBusy || (actionType === 'research' && researchAlreadySubmitted)}
+            disabled={isBusy}
             className="rounded-none min-h-[44px] px-5 bg-primary text-primary-foreground font-semibold shadow-sm btn-press"
           >
             {isBusy ? 'Processing...' : details.confirmLabel}

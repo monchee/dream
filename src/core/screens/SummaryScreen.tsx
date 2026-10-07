@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import {
-  CheckCircle2,
   ClipboardCopy,
   Copy,
-  Database,
   EyeOff,
   FileText,
-  Loader2,
   LogOut,
   Mail,
   MonitorCheck,
@@ -21,7 +18,6 @@ import { showToast } from '@shared/utils';
 import { formatClinicalReportAsText, formatPatientHandoutAsText, generateLetterText } from '@shared/utils/reportExporter';
 import { RedactProvider, useRedact } from '@features/reports/hooks/useRedact';
 import { ScreenChrome } from './types';
-import { useResearchSubmit } from '@features/research/hooks/useResearchSubmit';
 import { ClinicalContextBar } from '@features/patients/components/ClinicalContextBar';
 import { OutboundActionDialog, OutboundActionType } from '@features/reports/components/OutboundActionDialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -81,7 +77,6 @@ export interface SummaryScreenProps {
   activeReportSavedAt: number | null;
   activeReportTab: ReportTab;
   setActiveReportTab: (tab: ReportTab) => void;
-  research: ReturnType<typeof useResearchSubmit>;
   onExit: () => void;
   onStartNewLog: () => void;
 }
@@ -94,7 +89,6 @@ function SummaryScreenContent({
   activeReportSavedAt,
   activeReportTab,
   setActiveReportTab,
-  research,
   onExit,
   onStartNewLog,
 }: SummaryScreenProps) {
@@ -145,10 +139,6 @@ function SummaryScreenContent({
 
   const handleConfirmedPrint = () => {
     window.print();
-  };
-
-  const handleConfirmedResearch = async () => {
-    await research.submit(lastSavedRecord, boundPatient?.redcapId);
   };
 
   return (
@@ -217,12 +207,10 @@ function SummaryScreenContent({
           dob={lastSavedRecord.dob}
           testingDate={lastSavedRecord.visitDate}
           isRedacted={isRedacted}
-          researchAlreadySubmitted={research.isSubmitted}
           onConfirm={async () => {
             if (activeOutboundAction === 'print') handleConfirmedPrint();
             else if (activeOutboundAction === 'copy') await handleConfirmedCopy();
             else if (activeOutboundAction === 'email') handleConfirmedEmail();
-            else if (activeOutboundAction === 'research') await handleConfirmedResearch();
           }}
         />
       )}
@@ -292,57 +280,6 @@ function SummaryScreenContent({
           </Button>
         </div>
       </div>
-
-      {/* Research Section — Tier 3: separate de-identified research submission */}
-      {research.isAvailable && (
-        <div
-          role="group"
-          aria-label="Research submission — de-identified payload only"
-          className="border border-border bg-card p-4 space-y-3 no-print rounded-none"
-        >
-          <h3 className="section-label">Research Database:</h3>
-          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Database className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            Only the de-identified research payload is transmitted — no patient identifiers
-          </p>
-          {research.isSubmitted ? (
-            <div
-              id="research-submission-status"
-              tabIndex={-1}
-              className="flex items-center justify-center gap-2 py-4 text-sm text-status-success border border-status-success/30 bg-status-success/10 rounded-none focus-visible:outline-none"
-              role="status"
-              aria-live="polite"
-            >
-              <CheckCircle2 className="w-4 h-4" /> Submitted to Research Database
-            </div>
-          ) : (
-            <>
-              {!isOnline && (
-                <p className="text-xs text-status-warning" role="status">
-                  Offline — research submission is unavailable until the connection returns.
-                </p>
-              )}
-              <Button
-                onClick={() => setActiveOutboundAction('research')}
-                disabled={research.isSubmitting || !isOnline}
-                size="lg"
-                variant="outline"
-                aria-label="Save de-identified data to the research database"
-                className="w-full py-4 h-auto text-sm rounded-none border-dashed"
-              >
-                {research.isSubmitting ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving to Research Database…</>
-                ) : (
-                  <><Database className="w-4 h-4 mr-2" /> Save to Research Database</>
-                )}
-              </Button>
-            </>
-          )}
-          {research.error && (
-            <p className="mt-1 text-xs text-destructive text-center" role="alert">{research.error}</p>
-          )}
-        </div>
-      )}
 
       {/* Neutral Start New Log Action */}
       <div className="no-print border-t border-border pt-4 mt-2">

@@ -605,34 +605,6 @@ test.describe('Automated Accessibility Scans', () => {
     expect(violations.length).toBe(0);
   });
 
-  test('axe-core scan on research page', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('[role="banner"]', { timeout: 15000 });
-    await dismissHelpModal(page);
-    await page.locator('a[href="/research"]').first().click();
-    await page.waitForLoadState('networkidle');
-    await injectAxe(page);
-
-    const violations = await page.evaluate(([ctx, opts]) => {
-      return new Promise((resolve) => {
-        (window as any).axe.run(ctx, opts, (err: any, results: any) => {
-          if (err) resolve([]);
-          resolve(results.violations);
-        });
-      });
-    }, [AXE_EXCLUDE_CONTEXT, AXE_RULES_NO_CONTRAST]) as any[];
-
-    if (violations.length > 0) {
-      console.log('Accessibility Violations on research page:');
-      violations.forEach((v: any) => {
-        console.log(`- ${v.id}: ${v.description}`);
-        v.nodes.forEach((n: any) => { console.log(`  Target: ${n.target.join(', ')}`); console.log(`  HTML: ${n.html}`); });
-      });
-    }
-
-    expect(violations.length).toBe(0);
-  });
-
   test('axe-core scan on changelog page', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[role="banner"]', { timeout: 15000 });
