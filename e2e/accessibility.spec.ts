@@ -243,6 +243,71 @@ test.describe('Accessibility Tests', () => {
     expect(contrastViolations.length).toBe(0);
   });
 
+  test('dark-mode text meets WCAG AA on key clinical surfaces (plan 004 M2)', async ({ page }) => {
+    // axe's color-contrast rule cannot resolve hsl(var(--token)) values and
+    // false-positives on dark surfaces, so this check computes the real
+    // contrast ratio from computed styles instead — deterministic and
+    // variable-aware.
+    await page.getByRole('button', { name: /switch to (dark|light) theme/i }).click();
+    await expect(page.locator('html.dark')).toHaveCount(1);
+
+    await page.goto('/testing');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: /2\.\s*SPT and IDT/i }).click();
+    const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
+    await histamine.fill('6'); // >= 3mm triggers the +POS danger state
+
+    const results = await page.evaluate(() => {
+      function parseRgb(css: string): [number, number, number] | null {
+        const m = css.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+        if (!m) return null;
+        return [Number(m[1]), Number(m[2]), Number(m[3]), m[4] === undefined ? 1 : Number(m[4])];
+      }
+      function channel(c: number): number {
+        const s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      }
+      function luminance(rgb: [number, number, number]): number {
+        return 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
+      }
+      function contrast(a: [number, number, number], b: [number, number, number]): number {
+        const l1 = luminance(a);
+        const l2 = luminance(b);
+        return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      }
+      function effectiveBackground(el: Element): [number, number, number] {
+        let node: Element | null = el;
+        while (node) {
+          const bg = parseRgb(getComputedStyle(node).backgroundColor);
+          if (bg && bg[3] > 0.9) return [bg[0], bg[1], bg[2]];
+          node = node.parentElement;
+        }
+        return [26, 26, 26]; // dark --background #1a1a1a
+      }
+
+      const selectors = [
+        { label: 'Section heading', el: document.querySelector('h1') },
+        { label: 'Section label (Reference Controls)', el: Array.from(document.querySelectorAll('.section-label')).find(n => n.textContent?.includes('Reference Controls')) },
+        { label: 'Control label (Histamine)', el: document.querySelector('label[for="histamine-spt"]') },
+        { label: 'Control input (Histamine)', el: document.getElementById('histamine-spt') },
+        { label: 'Draft indicator', el: document.querySelector('[aria-live="polite"][aria-atomic="true"]') },
+      ];
+
+      return selectors.map(({ label, el }) => {
+        if (!el) return { label, ratio: null as number | null };
+        const fg = parseRgb(getComputedStyle(el).color);
+        if (!fg) return { label, ratio: null as number | null };
+        const bg = effectiveBackground(el);
+        return { label, ratio: contrast([fg[0], fg[1], fg[2]], bg) };
+      });
+    });
+
+    for (const r of results) {
+      expect(r.ratio, `${r.label} contrast`).not.toBeNull();
+      expect(r.ratio as number, `${r.label} contrast`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   test('aria-live regions announce dynamic content', async ({ page }) => {
     // The Sonner Toaster in App.tsx renders a hidden live region for screen-reader announcements.
     // In this version of Sonner, the live region is a <section aria-live="polite"> with
