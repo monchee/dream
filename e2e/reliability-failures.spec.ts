@@ -8,8 +8,6 @@ import { test, expect } from './fixtures';
  * fixture; clinical keys fail, fixture keys stay writable.
  */
 
-const CLINICAL_KEYS = ['dream:testing_draft', 'dream:active_report', 'dream:testing_plan_builder_drafts', 'dream:patient_db'];
-
 /** Inject a storage failure for clinical keys only. */
 async function failClinicalWrites(page: import('@playwright/test').Page, errorName: 'QuotaExceededError' | 'SecurityError') {
   await page.addInitScript((errorName) => {
@@ -38,7 +36,12 @@ async function makeTestingFormDirty(page: import('@playwright/test').Page) {
   await enterTestingSection(page);
   const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
   await expect(histamine).toBeVisible({ timeout: 15_000 });
+  // Let the section's initial render settle before typing (a fill that races
+  // the first render can be lost from React state while remaining in the DOM).
+  await page.waitForTimeout(300);
+  await histamine.click();
   await histamine.fill('5');
+  await expect(histamine).toHaveValue('5');
 }
 
 test.describe('reliability failure modes', () => {
@@ -47,8 +50,11 @@ test.describe('reliability failure modes', () => {
     await makeTestingFormDirty(page);
 
     // The truthful indicator: no "Draft saved", the visible warning instead.
-    await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/^Draft saved/)).toHaveCount(0);
+    // Core contract: nothing was written under the clinical draft key.
+    const draftWritten = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
+    expect(draftWritten).toBeNull();
     // The form value the nurse typed is still there.
     await expect(page.getByLabel(/Histamine \(SPT\)/i).first()).toHaveValue('5');
     // No uncaught page error banner: the app remains usable.
@@ -103,7 +109,7 @@ test.describe('reliability failure modes', () => {
     await expect(page.getByText(/Unable to save this record locally/i).first()).toBeVisible({ timeout: 10_000 });
   });
 
-  test('two-tab divergence warns the stale dirty tab instead of overwriting', async ({ page, browser }) => {
+  test('two-tab divergence warns the stale dirty tab instead of overwriting', async ({ page }) => {
     // Tab A is the fixture's page (unlock seeding already applied).
     const tabA = page;
     const context = page.context();
