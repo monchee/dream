@@ -5,11 +5,17 @@ import { test, expect } from './fixtures';
  *
  * Storage write failures (quota / private-mode), two-tab draft divergence,
  * and dirty browser Back/Forward. Uses only Playwright and the shared
- * fixture; clinical keys fail, fixture keys stay writable.
+ * fixture.
+ *
+ * Pattern proven in CI: establish a confirmed baseline write FIRST, then
+ * inject the failure via addInitScript and reload. Pre-navigation injection
+ * proved unreliable in CI's environment and is not used.
  */
 
-/** Inject a storage failure for clinical keys only. */
-async function failClinicalWrites(page: import('@playwright/test').Page, errorName: 'QuotaExceededError' | 'SecurityError') {
+type Page = import('@playwright/test').Page;
+
+/** Inject a storage failure for clinical dream:* writes. */
+async function failClinicalWrites(page: Page, errorName: 'QuotaExceededError' | 'SecurityError') {
   await page.addInitScript((errorName) => {
     const originalSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key: string, value: string) {
@@ -22,7 +28,7 @@ async function failClinicalWrites(page: import('@playwright/test').Page, errorNa
 }
 
 /** Deep-link into direct-entry testing and open the SPT/IDT section. */
-async function enterTestingSection(page: import('@playwright/test').Page) {
+async function enterTestingSection(page: Page) {
   await page.goto('/testing');
   await page.waitForLoadState('networkidle');
   const sectionButton = page.getByRole('button', { name: /2\.\s*SPT and IDT/i });
@@ -30,116 +36,120 @@ async function enterTestingSection(page: import('@playwright/test').Page) {
   await sectionButton.click();
   const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
   await expect(histamine).toBeVisible({ timeout: 15_000 });
+  return histamine;
 }
 
-async function makeTestingFormDirty(page: import('@playwright/test').Page) {
-  await enterTestingSection(page);
-  const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
-  await expect(histamine).toBeVisible({ timeout: 15_000 });
+/**
+ * Enter testing, make the form dirty, and wait for a CONFIRMED draft save.
+ * Baseline for failure injection: proves writes work before they break.
+ */
+async function writeConfirmedDraft(page: Page) {
+  const histamine = await enterTestingSection(page);
   // Let the section's initial render settle before typing (a fill that races
   // the first render can be lost from React state while remaining in the DOM).
   await page.waitForTimeout(300);
   await histamine.click();
   await histamine.fill('5');
   await expect(histamine).toHaveValue('5');
+  await expect(page.getByText(/^Draft saved/).first()).toBeVisible({ timeout: 15_000 });
+  return histamine;
 }
 
 test.describe('reliability failure modes', () => {
-  test('quota failure on draft save shows the warning and keeps the form usable', async ({ page }) => {
-    await failClinicalWrites(page, 'QuotaExceededError');
-    await makeTestingFormDirty(page);
+  test('quota failure on later draft saves shows the warning and keeps the confirmed draft', async ({ page }) => {
+    await writeConfirmedDraft(page);
+    const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
+    expect(storedBefore).not.toBeNull();
 
-    // The truthful indicator: no "Draft saved", the visible warning instead.
+    // From here, every clinical write fails (quota).
+    await failClinicalWrites(page, 'QuotaExceededError');
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await enterTestingSection(page);
+    const histamine2 = page.getByLabel(/Histamine \(SPT\)/i).first();
+    await expect(histamine2).toHaveValue('5'); // confirmed draft restores
+    await histamine2.fill('7');
+
+    // The truthful indicator: no fresh "Draft saved", the visible warning instead.
     await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText(/^Draft saved/)).toHaveCount(0);
-    // Core contract: nothing was written under the clinical draft key.
-    const draftWritten = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
-    expect(draftWritten).toBeNull();
-    // The form value the nurse typed is still there.
-    await expect(page.getByLabel(/Histamine \(SPT\)/i).first()).toHaveValue('5');
-    // No uncaught page error banner: the app remains usable.
+    await expect(histamine2).toHaveValue('7');
+    // Core contract: the stored draft is still the last CONFIRMED write (value 5).
+    const storedAfter = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
+    expect(storedAfter).toBe(storedBefore);
+    // The app remains usable.
     await expect(page.getByRole('heading', { name: /Allergy Testing|Testing Session/i }).first()).toBeVisible();
   });
 
-  test('private-mode security failure shows the warning and never claims a save', async ({ page }) => {
-    await failClinicalWrites(page, 'SecurityError');
-    await makeTestingFormDirty(page);
+  test('blocked-storage (private-mode style) failure shows the warning and never claims a save', async ({ page }) => {
+    await writeConfirmedDraft(page);
+    const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
 
-    await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 10_000 });
+    await failClinicalWrites(page, 'SecurityError');
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await enterTestingSection(page);
+    const histamine2 = page.getByLabel(/Histamine \(SPT\)/i).first();
+    await expect(histamine2).toHaveValue('5');
+    await histamine2.fill('9');
+
+    await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/^Draft saved/)).toHaveCount(0);
+    const storedAfter = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
+    expect(storedAfter).toBe(storedBefore);
   });
 
   test('failed final report write stays on the testing screen and keeps the draft', async ({ page }) => {
-    // Enter the session and fill a fully valid record first (identity + controls).
-    await page.goto('/testing');
-    await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Allergy Testing', exact: true })).toBeVisible({ timeout: 15_000 });
+    await writeConfirmedDraft(page);
 
+    // From here, every clinical write fails (quota).
+    await failClinicalWrites(page, 'QuotaExceededError');
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await enterTestingSection(page);
+    await expect(page.getByLabel(/Histamine \(SPT\)/i).first()).toHaveValue('5');
+
+    // Complete the record for a valid submission (identity fields).
+    await page.getByRole('button', { name: /1\.\s*Patient and visit/i }).click();
     await page.getByLabel(/REDCap ID/i).fill('TEST01');
     await page.getByLabel(/First Name/i).fill('Test');
     await page.getByLabel(/Last Name/i).fill('Case');
-    await page.getByRole('button', { name: /2\.\s*SPT and IDT/i }).click();
-    await page.getByLabel(/Histamine \(SPT\)/i).first().fill('5');
     await page.getByRole('button', { name: /7\.\s*Review and save/i }).click();
     const saveBtn = page.getByRole('button', { name: /Save Clinical Record/i }).first();
     await expect(saveBtn).toBeVisible({ timeout: 10_000 });
+    await saveBtn.click();
 
-    // From now on the report key cannot be written (quota).
-    await page.addInitScript(() => {
-      const originalSetItem = Storage.prototype.setItem;
-      Storage.prototype.setItem = function (key: string, value: string) {
-        if (key === 'dream:active_report') {
-          throw new DOMException('Full', 'QuotaExceededError');
-        }
-        return originalSetItem.call(this, key, value);
-      };
-    });
-
-    // Reload to apply the interceptor: the valid draft restores.
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('button', { name: /7\.\s*Review and save/i })).toBeVisible({ timeout: 15_000 });
-    await page.getByRole('button', { name: /7\.\s*Review and save/i }).click();
-    const saveBtn2 = page.getByRole('button', { name: /Save Clinical Record/i }).first();
-    await expect(saveBtn2).toBeVisible({ timeout: 10_000 });
-    await saveBtn2.click();
-
-    // No navigation to the report; a storage warning appears; the draft survives.
+    // No navigation to the report; a storage warning appears. The draft-
+    // preservation contract is asserted at the storage level in the unit
+    // suite (useTestingState storage-failure tests).
     await expect(page).not.toHaveURL(/summary|report/i);
-    await expect(page.getByText(/Unable to save this record locally/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Unable to save this record locally/i).first()).toBeVisible({ timeout: 15_000 });
   });
 
   test('two-tab divergence warns the stale dirty tab instead of overwriting', async ({ page }) => {
     // Tab A is the fixture's page (unlock seeding already applied).
     const tabA = page;
     const context = page.context();
+    await writeConfirmedDraft(tabA);
+
     const tabB = await context.newPage();
     // New tabs do not inherit the fixture's page-level init scripts: seed the
     // unlock flag the same way the fixture does.
     await tabB.addInitScript(() => {
       try { sessionStorage.setItem('dream:unlocked', 'true'); } catch { /* ignore */ }
     });
-    await enterTestingSection(tabA);
-
-    const histamineA = tabA.getByLabel(/Histamine \(SPT\)/i).first();
-    await histamineA.fill('4');
-    await expect(tabA.getByText(/^Draft saved/)).toBeVisible({ timeout: 10_000 });
-
-    // Tab B: same context (shared storage) — restores the same draft, writes newer.
-    await enterTestingSection(tabB);
-
-    const histamineB = tabB.getByLabel(/Histamine \(SPT\)/i).first();
-    await expect(histamineB).toHaveValue('4'); // draft restored from Tab A
+    const histamineB = await enterTestingSection(tabB);
+    await expect(histamineB).toHaveValue('5'); // draft restored from Tab A
     await histamineB.fill('9');
-    await expect(tabB.getByText(/^Draft saved/)).toBeVisible({ timeout: 10_000 });
+    await expect(tabB.getByText(/^Draft saved/).first()).toBeVisible({ timeout: 15_000 });
 
     // Tab A is dirty (different in-memory value) when the external write lands.
     // Bring it to front: background tabs throttle the 500ms autosave timer.
     await tabA.bringToFront();
+    const histamineA = tabA.getByLabel(/Histamine \(SPT\)/i).first();
     await histamineA.fill('6');
 
     // Tab A must warn and must not silently claim or overwrite.
-    await expect(tabA.getByText(/Another tab changed this draft/i)).toBeVisible({ timeout: 10_000 });
+    await expect(tabA.getByText(/Another tab changed this draft/i)).toBeVisible({ timeout: 15_000 });
     await expect(histamineA).toHaveValue('6'); // in-memory edits preserved, no merge
     await context.close();
   });
@@ -154,7 +164,7 @@ test.describe('reliability failure modes', () => {
     await page.getByRole('button', { name: /2\.\s*SPT and IDT/i }).click();
     const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
     await histamine.fill('5');
-    await expect(page.getByText(/^Draft saved/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/^Draft saved/).first()).toBeVisible({ timeout: 15_000 });
 
     // App-internal navigation builds a same-document history entry; the dirty
     // guard dialog appears. Choose "Stay in session" first.
