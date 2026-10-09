@@ -103,10 +103,11 @@ export const GetStartedModal: React.FC<GetStartedModalProps> = ({
         // Keep the import surface open with the in-memory data; the hook's
         // toast explains the storage failure.
         setStep('choose');
-        return;
+        return false;
       }
       setStep('choose');
       setOpen(false);
+      return persisted;
     },
     onComplete: () => {
       onUploadComplete?.();

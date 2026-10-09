@@ -117,6 +117,19 @@ describe('Dashboard', () => {
     vi.clearAllMocks();
   });
 
+  describe('Severity provenance labeling (plan 004 M3)', () => {
+    it('labels session-log grades as inferred in the severity distribution', () => {
+      render(<Dashboard {...mockProps} />);
+
+      // mockLogs include session logs → inferred copy must appear.
+      const note = screen.getByText(/session-log grades are inferred from outcome and intervention/i);
+      expect(note).toBeInTheDocument();
+
+      const chart = screen.getByRole('img', { name: /severity distribution.*inferred/i });
+      expect(chart).toBeInTheDocument();
+    });
+  });
+
   describe('Rendering', () => {
     it('shows the imported cohort count and six-hour expiry time', () => {
       const savedAt = new Date(2026, 6, 14, 10, 30).getTime();

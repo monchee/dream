@@ -31,7 +31,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI ? 'npm run preview' : 'npm run dev -- --port 3002',
+    command: process.env.CI ? 'npm run preview' : `npm run dev -- --port ${process.env.DREAM_DEV_PORT ?? 3002}`,
     port: process.env.CI ? 4173 : Number(process.env.DREAM_DEV_PORT ?? 3002),
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

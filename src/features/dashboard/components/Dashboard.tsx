@@ -17,7 +17,7 @@ interface DashboardProps {
   drugOptions: string[];
   drugCategories: Record<string, string[]>;
   onSelectPatient: (patient: Patient) => void;
-  onUploadPatients: (patients: Patient[], fileLastModified?: number) => void;
+  onUploadPatients: (patients: Patient[], fileLastModified?: number) => boolean | void;
   databaseDate: string;
   isCustomData?: boolean;
   isLoadingPatients?: boolean;
@@ -120,7 +120,14 @@ const Dashboard: React.FC<DashboardProps> = ({ existingPatients, recentLogs, dru
                             details: result.details,
                         });
                     } else {
-                        onUploadPatients(result.data, file.lastModified);
+                        const persisted = onUploadPatients(result.data, file.lastModified);
+                        if (persisted === false) {
+                            toast.error('Imported, but not saved', {
+                                description: 'Browser storage refused the write. The records are available until you leave this page.',
+                                duration: 8000,
+                            });
+                            return;
+                        }
                         toast.success('Database updated', {
                             description: `Imported ${result.data.length} record(s).${result.details ? ` ${result.details.join(' ')}` : ''}`,
                         });
@@ -192,7 +199,14 @@ const Dashboard: React.FC<DashboardProps> = ({ existingPatients, recentLogs, dru
   const handleConfirmReplacement = () => {
     if (!pendingReplacement) return;
 
-    onUploadPatients(pendingReplacement.data, pendingReplacement.fileLastModified);
+    const persisted = onUploadPatients(pendingReplacement.data, pendingReplacement.fileLastModified);
+    if (persisted === false) {
+      toast.error('Imported, but not saved', {
+        description: 'Browser storage refused the write. The records are available until you leave this page.',
+        duration: 8000,
+      });
+      return;
+    }
     toast.success('Database updated', {
       description: `Imported ${pendingReplacement.data.length} record(s).${pendingReplacement.details ? ` ${pendingReplacement.details.join(' ')}` : ''}`,
     });
