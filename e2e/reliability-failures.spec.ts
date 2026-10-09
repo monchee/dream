@@ -45,14 +45,24 @@ async function enterTestingSection(page: Page) {
  */
 async function writeConfirmedDraft(page: Page) {
   const histamine = await enterTestingSection(page);
-  // Let the section's initial render settle before typing (a fill that races
-  // the first render can be lost from React state while remaining in the DOM).
-  await page.waitForTimeout(300);
-  await histamine.click();
-  await histamine.fill('5');
-  await expect(histamine).toHaveValue('5');
-  await expect(page.getByText(/^Draft saved/).first()).toBeVisible({ timeout: 15_000 });
-  return histamine;
+  // On slower machines the section's lazy content can finish mounting after
+  // the click, replacing the input and losing a fill that only reached the
+  // DOM. Retype until React state actually receives the value — signalled by
+  // the autosave lifecycle ("Draft saved" for a confirmed write).
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await histamine.click();
+      await histamine.fill('5');
+      await expect(histamine).toHaveValue('5');
+      await expect(page.getByText(/^Draft saved/).first()).toBeVisible({ timeout: 5_000 });
+      return histamine;
+    } catch (err) {
+      lastError = err as Error;
+      await page.waitForTimeout(500);
+    }
+  }
+  throw lastError ?? new Error('Could not establish a confirmed baseline draft');
 }
 
 test.describe('reliability failure modes', () => {
