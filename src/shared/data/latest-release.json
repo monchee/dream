@@ -1,5 +1,9 @@
 [
   {
+    "version": "v0.92.0",
+    "codename": "Proof, Not Promises"
+  },
+  {
     "version": "v0.91.0",
     "codename": "Less To Protect"
   },
@@ -14,9 +18,5 @@
   {
     "version": "v0.80.0",
     "codename": "One Coherent Workbench"
-  },
-  {
-    "version": "v0.79.17",
-    "codename": "A Background That Breathes"
   }
 ]
