@@ -258,28 +258,32 @@ test.describe('Accessibility Tests', () => {
     await histamine.fill('6'); // >= 3mm triggers the +POS danger state
 
     const results = await page.evaluate(() => {
-      function parseRgb(css: string): [number, number, number] | null {
+      type RGB = [number, number, number];
+      function parseRgb(css: string): RGB | null {
         const m = css.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
         if (!m) return null;
-        return [Number(m[1]), Number(m[2]), Number(m[3]), m[4] === undefined ? 1 : Number(m[4])];
+        const alpha = m[4] === undefined ? 1 : Number(m[4]);
+        const rgb: RGB = [Number(m[1]), Number(m[2]), Number(m[3])];
+        void alpha;
+        return rgb;
       }
       function channel(c: number): number {
         const s = c / 255;
         return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
       }
-      function luminance(rgb: [number, number, number]): number {
+      function luminance(rgb: number[]): number {
         return 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
       }
-      function contrast(a: [number, number, number], b: [number, number, number]): number {
+      function contrast(a: number[], b: number[]): number {
         const l1 = luminance(a);
         const l2 = luminance(b);
         return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
       }
-      function effectiveBackground(el: Element): [number, number, number] {
+      function effectiveBackground(el: Element): RGB {
         let node: Element | null = el;
         while (node) {
           const bg = parseRgb(getComputedStyle(node).backgroundColor);
-          if (bg && bg[3] > 0.9) return [bg[0], bg[1], bg[2]];
+          if (bg && (bg as unknown as number[])[3] > 0.9) return bg;
           node = node.parentElement;
         }
         return [26, 26, 26]; // dark --background #1a1a1a
@@ -298,7 +302,7 @@ test.describe('Accessibility Tests', () => {
         const fg = parseRgb(getComputedStyle(el).color);
         if (!fg) return { label, ratio: null as number | null };
         const bg = effectiveBackground(el);
-        return { label, ratio: contrast([fg[0], fg[1], fg[2]], bg) };
+        return { label, ratio: contrast(fg, bg) };
       });
     });
 

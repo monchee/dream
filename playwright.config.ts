@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: process.env.CI ? 'http://localhost:4173' : 'http://localhost:3000',
+    baseURL: process.env.CI ? 'http://localhost:4173' : `http://localhost:${process.env.DREAM_DEV_PORT ?? 3002}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     // Pin the browser clock to the clinic's timezone. Tests that assert a
@@ -31,8 +31,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI ? 'npm run preview' : 'npm run dev',
-    port: process.env.CI ? 4173 : 3000,
+    command: process.env.CI ? 'npm run preview' : 'npm run dev -- --port 3002',
+    port: process.env.CI ? 4173 : Number(process.env.DREAM_DEV_PORT ?? 3002),
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

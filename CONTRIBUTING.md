@@ -6,10 +6,10 @@ This repository is private clinical tooling. Contributions should preserve patie
 
 ```bash
 npm ci
-npm run dev
+npm run dev -- --port 3002
 ```
 
-Open the Vite URL printed in the terminal, usually `http://localhost:3000`.
+Open `http://localhost:3002`. Ports 3000 and 3001 are occupied on this machine — always pass `--port 3002` explicitly.
 
 ## Expected Checks
 
@@ -28,7 +28,7 @@ Use `npm run test:e2e` for browser-flow changes and `npm run test:coverage` when
 
 - Never commit real patient data, REDCap exports, identifiable screenshots, generated clinical reports, or print/PDF captures.
 - Use demo or synthetic data for tests and screenshots.
-- Keep normal clinical workflows local-first: identifiable patient data should remain in the browser unless a feature explicitly handles deidentified research submission.
+- Keep clinical workflows fully local-first: identifiable patient data stays in the browser. No feature currently sends clinical data to an application backend (the research submission path was removed in v0.91.0).
 - Avoid adding dependencies, logging, analytics, or network calls that could transmit clinical data without explicit review.
 
 ## Changelog and Release Notes
