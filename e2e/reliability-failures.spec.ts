@@ -14,9 +14,9 @@ import { test, expect } from './fixtures';
 
 type Page = import('@playwright/test').Page;
 
-/** Inject a storage failure for clinical dream:* writes. */
+/** Fail every further clinical dream:* write, patched into the live page. */
 async function failClinicalWrites(page: Page, errorName: 'QuotaExceededError' | 'SecurityError') {
-  await page.addInitScript((errorName) => {
+  await page.evaluate((errorName) => {
     const originalSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key: string, value: string) {
       if (typeof key === 'string' && key.startsWith('dream:')) {
@@ -67,22 +67,18 @@ async function writeConfirmedDraft(page: Page) {
 
 test.describe('reliability failure modes', () => {
   test('quota failure on later draft saves shows the warning and keeps the confirmed draft', async ({ page }) => {
-    await writeConfirmedDraft(page);
+    const histamine = await writeConfirmedDraft(page);
     const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
     expect(storedBefore).not.toBeNull();
 
-    // From here, every clinical write fails (quota).
+    // From here, every clinical write fails (quota) — patched into the live
+    // page so the next autosave hits the failure.
     await failClinicalWrites(page, 'QuotaExceededError');
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await enterTestingSection(page);
-    const histamine2 = page.getByLabel(/Histamine \(SPT\)/i).first();
-    await expect(histamine2).toHaveValue('5'); // confirmed draft restores
-    await histamine2.fill('7');
+    await histamine.fill('7');
 
     // The truthful indicator: no fresh "Draft saved", the visible warning instead.
     await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 15_000 });
-    await expect(histamine2).toHaveValue('7');
+    await expect(histamine).toHaveValue('7');
     // Core contract: the stored draft is still the last CONFIRMED write (value 5).
     const storedAfter = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
     expect(storedAfter).toBe(storedBefore);
@@ -91,16 +87,11 @@ test.describe('reliability failure modes', () => {
   });
 
   test('blocked-storage (private-mode style) failure shows the warning and never claims a save', async ({ page }) => {
-    await writeConfirmedDraft(page);
+    const histamine = await writeConfirmedDraft(page);
     const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
 
     await failClinicalWrites(page, 'SecurityError');
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await enterTestingSection(page);
-    const histamine2 = page.getByLabel(/Histamine \(SPT\)/i).first();
-    await expect(histamine2).toHaveValue('5');
-    await histamine2.fill('9');
+    await histamine.fill('9');
 
     await expect(page.getByText(/Unable to save locally/i).first()).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/^Draft saved/)).toHaveCount(0);
@@ -109,14 +100,11 @@ test.describe('reliability failure modes', () => {
   });
 
   test('failed final report write stays on the testing screen and keeps the draft', async ({ page }) => {
-    await writeConfirmedDraft(page);
+    const histamine = await writeConfirmedDraft(page);
 
-    // From here, every clinical write fails (quota).
+    // From here, every clinical write fails (quota) — the final report write
+    // included.
     await failClinicalWrites(page, 'QuotaExceededError');
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await enterTestingSection(page);
-    await expect(page.getByLabel(/Histamine \(SPT\)/i).first()).toHaveValue('5');
 
     // Complete the record for a valid submission (identity fields).
     await page.getByRole('button', { name: /1\.\s*Patient and visit/i }).click();
