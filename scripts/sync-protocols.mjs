@@ -236,18 +236,26 @@ export function hasClinicalSignOff(existingReport, fingerprint) {
   return { ok: true };
 }
 
-export function formatDoseDiffReport(diffs, { sourceDescription, incomingSchemaVersion, generatedAt }) {
+export function formatDoseDiffReport(diffs, {
+  sourceDescription,
+  incomingSchemaVersion,
+  generatedAt,
+  statusOverride = null,
+  existingSignOff = null,
+}) {
+  const hasDiffs = diffs.length > 0;
+  const status = statusOverride ?? (hasDiffs ? 'PENDING CLINICIAN REVIEW' : 'NO CHANGES');
   const lines = [];
   lines.push('# Protocol Sync — Clinical Review');
   lines.push('');
   lines.push(`- Source: ${sourceDescription}`);
   lines.push(`- Incoming schema version: ${incomingSchemaVersion}`);
   lines.push(`- Generated: ${generatedAt}`);
-  lines.push(`- Status: ${diffs.length === 0 ? 'NO CHANGES' : 'PENDING CLINICIAN REVIEW'}`);
+  lines.push(`- Status: ${status}`);
   lines.push(`- Diff fingerprint: ${diffFingerprint(diffs)}`);
   lines.push('');
 
-  if (diffs.length === 0) {
+  if (!hasDiffs) {
     lines.push('No dose changes detected between the existing snapshot and the incoming data.');
     lines.push('');
   } else {
@@ -264,6 +272,19 @@ export function formatDoseDiffReport(diffs, { sourceDescription, incomingSchemaV
   lines.push('---');
   lines.push('');
   lines.push('Clinical sign-off:');
+
+  if (status === 'ACCEPTED' && existingSignOff) {
+    // Preserve the complete recorded sign-off verbatim (Decision, Reviewer,
+    // Role, Reviewed, Scope/notes) so the durable artifact keeps the audit
+    // trail that authorized these changes.
+    const signed = existingSignOff.slice(existingSignOff.indexOf('- Decision:')).trim();
+    for (const line of signed.split('\n')) {
+      lines.push(line);
+    }
+    lines.push('');
+    return lines.join('\n');
+  }
+
   lines.push('- Decision: PENDING');
   lines.push('- Reviewer:');
   lines.push('- Role:');
@@ -361,49 +382,42 @@ export async function syncProtocols(options = {}) {
     : null;
   const fingerprint = diffFingerprint(diffs);
 
+  const writeReport = (statusOverride) => {
+    const report = formatDoseDiffReport(diffs, {
+      sourceDescription,
+      incomingSchemaVersion: newSnapshotRaw.schema_version,
+      generatedAt: new Date().toISOString(),
+      statusOverride,
+      existingSignOff: statusOverride === 'ACCEPTED' ? existingReport : null,
+    });
+    writeProtocolDiffReport(report);
+    return report;
+  };
+
+  // --review-only NEVER writes clinical data files, in any branch.
+  if (options.reviewOnly) {
+    writeReport(diffs.length === 0 ? 'NO CHANGES' : 'PENDING CLINICIAN REVIEW');
+    console.log('--review-only: snapshot and generated masterlist left unchanged.');
+    return;
+  }
+
   if (diffs.length > 0) {
     // Review gate (plan 004 M3): dose changes require a completed, AFFIRMATIVE
     // clinical sign-off in the existing review report. PENDING and REJECTED
     // decisions both refuse acceptance.
-    if (options.reviewOnly) {
-      const report = formatDoseDiffReport(diffs, {
-        sourceDescription,
-        incomingSchemaVersion: newSnapshotRaw.schema_version,
-        generatedAt: new Date().toISOString(),
-      });
-      writeProtocolDiffReport(report);
-      console.log('--review-only: snapshot and generated masterlist left unchanged.');
-      return;
+    const signOff = hasClinicalSignOff(existingReport, fingerprint);
+    if (!signOff.ok) {
+      // Refresh the pending report so the clinician reviews current changes.
+      writeReport('PENDING CLINICIAN REVIEW');
+      console.error(`\nRefusing to update protocol data: ${signOff.reason}`);
+      throw new Error('Clinical sign-off required before protocol changes are accepted. After sign-off is recorded in docs/protocol-review/latest-diff.md, re-run with --accept.');
     }
-    if (!options.accept) {
-      const signOff = hasClinicalSignOff(existingReport, fingerprint);
-      if (!signOff.ok) {
-        // Refresh the pending report so the clinician reviews current changes.
-        const report = formatDoseDiffReport(diffs, {
-          sourceDescription,
-          incomingSchemaVersion: newSnapshotRaw.schema_version,
-          generatedAt: new Date().toISOString(),
-        });
-        writeProtocolDiffReport(report);
-        console.error(`\nRefusing to update protocol data: ${signOff.reason}`);
-        throw new Error('Clinical sign-off required before protocol changes are accepted. After sign-off is recorded in docs/protocol-review/latest-diff.md, re-run with --accept.');
-      }
-      console.log(`Clinical sign-off verified for diff ${fingerprint}.`);
-    } else {
-      // --accept: requires the same completed sign-off the plain run checks.
-      const signOff = hasClinicalSignOff(existingReport, fingerprint);
-      if (!signOff.ok) {
-        const report = formatDoseDiffReport(diffs, {
-          sourceDescription,
-          incomingSchemaVersion: newSnapshotRaw.schema_version,
-          generatedAt: new Date().toISOString(),
-        });
-        writeProtocolDiffReport(report);
-        console.error(`\n--accept refused: ${signOff.reason}`);
-        throw new Error('Clinical sign-off required before protocol changes are accepted.');
-      }
-      console.log(`--accept: clinical sign-off verified for diff ${fingerprint}.`);
-    }
+    // Signed: write the ACCEPTED report BEFORE the snapshot write, so the
+    // durable signed artifact is never behind the clinical data.
+    writeReport('ACCEPTED');
+    console.log(`Clinical sign-off verified for diff ${fingerprint}.`);
+  } else {
+    writeReport('NO CHANGES');
   }
 
   // Write new snapshot
@@ -414,20 +428,6 @@ export async function syncProtocols(options = {}) {
   // Regenerate drugMasterlist.generated.ts
   const { protocolCount } = generateDrugMasterlist(SNAPSHOT_PATH);
   console.log(`Regenerated drugMasterlist.generated.ts with ${protocolCount} protocol records.`);
-
-  // Record the accepted (or no-change) review state AFTER the clinical files
-  // are updated — the previously signed report is never destroyed beforehand.
-  const report = formatDoseDiffReport(diffs, {
-    sourceDescription,
-    incomingSchemaVersion: newSnapshotRaw.schema_version,
-    generatedAt: new Date().toISOString(),
-  });
-  const finalReport = diffs.length > 0 && options.accept && existingReport
-    ? report.replace('- Decision: PENDING', existingReport.match(/- Decision: .+/)?.[0] ?? '- Decision: ACCEPTED')
-        .replace('- Reviewer:', existingReport.match(/- Reviewer: .+/)?.[0] ?? '- Reviewer:')
-        .replace('- Reviewed:', existingReport.match(/- Reviewed: .+/)?.[0] ?? '- Reviewed:')
-    : report;
-  writeProtocolDiffReport(finalReport);
 }
 
 export async function main() {

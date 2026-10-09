@@ -74,9 +74,9 @@ async function writeConfirmedDraft(page: Page) {
 // src/features/testing/hooks/useTestingState.test.ts (storage failure
 // handling) and src/shared/utils/ttlStorage.test.ts.
 test.describe('reliability failure modes — storage interception (local only)', () => {
-  test.skip(!!process.env.CI, 'prototype patching is unreliable in CI chromium; contracts covered in CI by unit storage-failure tests; this describe runs fully in local verification');
-
   test('quota failure on later draft saves shows the warning and keeps the confirmed draft', async ({ page }) => {
+    test.skip(!!process.env.CI, 'prototype patching is unreliable in CI chromium; contracts covered in CI by unit storage-failure tests; runs in local verification');
+
     const histamine = await writeConfirmedDraft(page);
     const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
     expect(storedBefore).not.toBeNull();
@@ -98,6 +98,7 @@ test.describe('reliability failure modes — storage interception (local only)',
 
   // See quota-test note: prototype patching is unreliable in CI chromium.
   test('blocked-storage (private-mode style) failure shows the warning and never claims a save', async ({ page }) => {
+    test.skip(!!process.env.CI, 'prototype patching is unreliable in CI chromium; contracts covered in CI by unit storage-failure tests; runs in local verification');
     const histamine = await writeConfirmedDraft(page);
     const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
 
