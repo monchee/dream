@@ -255,10 +255,24 @@ test.describe('Accessibility Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.getByRole('button', { name: /2\.\s*SPT and IDT/i }).click();
     const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
-    await histamine.fill('6'); // >= 3mm triggers the +POS danger state
-    // Wait for the observable +POS state before scanning — on slower machines
-    // a scan that races the render can miss the badge entirely.
-    await expect(page.getByText('+POS').first()).toBeVisible({ timeout: 15_000 });
+    // On slower machines the section's lazy content can finish mounting after
+    // the click, replacing the input and losing a fill that only reached the
+    // DOM. Retype until React state receives the value — signalled by +POS.
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        await histamine.click();
+        await histamine.fill('6'); // >= 3mm triggers the +POS danger state
+        await expect(page.getByText('+POS').first()).toBeVisible({ timeout: 5_000 });
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err as Error;
+        await page.waitForTimeout(500);
+      }
+    }
+    if (lastError) throw lastError;
+    await expect(page.getByText('+POS').first()).toBeVisible();
 
     const results = await page.evaluate(() => {
       type RGBA = [number, number, number, number];
