@@ -144,6 +144,24 @@ export function useTestingState() {
   // Listen for storage changes, window focus, visibility changes, or interval checks to purge stale in-memory state
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
+      // Another tab wrote a newer draft while this tab holds unconfirmed
+      // edits: warn visibly. Never auto-merge or overwrite — the clinician
+      // decides by reloading or continuing in this tab.
+      if (e.key === TESTING_DRAFT_KEY && e.newValue) {
+        try {
+          const incoming = JSON.parse(e.newValue) as { savedAt?: number };
+          if (
+            typeof incoming.savedAt === 'number'
+            && incoming.savedAt > (lastDraftSavedAtRef.current ?? 0)
+            && isTestingSessionDirty(formDataRef.current)
+            && isDraftEqual(lastSavedDraftRef.current, formDataRef.current) === false
+          ) {
+            setStorageWarning('Another tab changed this draft. Reload before continuing.');
+          }
+        } catch {
+          // malformed external payload — expiry check below still runs
+        }
+      }
       if (e.key === ACTIVE_REPORT_KEY || e.key === TESTING_DRAFT_KEY || e.key === null) {
         checkExpiry();
       }
@@ -217,6 +235,20 @@ export function useTestingState() {
           testingVisitDate: formData.visitDate,
         };
         setWorkContext(currentContext);
+      }
+
+      // Cross-tab guard: if another tab confirmed a newer draft after ours,
+      // refuse to silently overwrite it. Warn and keep local edits in memory.
+      const externalSavedAt = getSavedAt(TESTING_DRAFT_KEY, ACTIVE_REPORT_TTL_MS);
+      if (
+        externalSavedAt !== null
+        && lastSavedDraftRef.current !== null
+        && externalSavedAt > (lastDraftSavedAtRef.current ?? 0)
+      ) {
+        setStorageWarning('Another tab changed this draft. Reload before continuing.');
+        setIsSavingDraft(false);
+        draftTimer.current = null;
+        return;
       }
 
       const draftEnvelope: TestingDraftEnvelope = {
