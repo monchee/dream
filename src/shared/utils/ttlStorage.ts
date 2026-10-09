@@ -27,16 +27,32 @@ interface TTLEntry<T> {
   savedAt: number;
 }
 
-/** Store a value alongside its write timestamp. Non-fatal on failure. */
-export function setWithTTL<T>(key: string, value: T): void {
+/**
+ * Store a value alongside its write timestamp.
+ *
+ * Returns true only after the write is confirmed by reading the key back and
+ * verifying the stored bytes match. Returns false (without throwing) for
+ * quota errors, private-mode/security errors, unavailable storage,
+ * serialization errors, or a read-back mismatch — so callers never report a
+ * clinical save that did not happen.
+ */
+export function setWithTTL<T>(key: string, value: T): boolean {
+  let serialized: string;
   try {
     const entry: TTLEntry<T> = { value, savedAt: Date.now() };
-    localStorage.setItem(key, JSON.stringify(entry));
+    serialized = JSON.stringify(entry);
+    localStorage.setItem(key, serialized);
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
       console.warn(`Unable to save local clinical data for "${key}": browser storage quota exceeded.`);
     }
     // localStorage may be unavailable (private mode / quota) — non-fatal
+    return false;
+  }
+  try {
+    return localStorage.getItem(key) === serialized;
+  } catch {
+    return false;
   }
 }
 

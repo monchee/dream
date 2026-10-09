@@ -71,7 +71,7 @@ export function usePatientState() {
     });
   };
 
-  const handleUploadPatients = (newPatients: Patient[], fileLastModified?: number) => {
+  const handleUploadPatients = (newPatients: Patient[], fileLastModified?: number): boolean => {
     const date = fileLastModified ? new Date(fileLastModified) : new Date();
     const nextDatabaseDate = date.toLocaleDateString('en-AU');
     const patientDb = {
@@ -80,11 +80,18 @@ export function usePatientState() {
       hasUploadedData: true,
     };
 
+    // In-memory data always updates; "saved" claims require a confirmed write.
     setPatients(newPatients);
+
+    const writeOk = setWithTTL(PATIENT_DB_KEY, patientDb);
+    if (!writeOk) {
+      console.warn('Unable to persist the imported patient database locally.');
+      return false;
+    }
     setDatabaseDate(nextDatabaseDate);
     setHasUploadedData(true);
-    setWithTTL(PATIENT_DB_KEY, patientDb);
     setPatientDbSavedAt(getSavedAt(PATIENT_DB_KEY, ACTIVE_REPORT_TTL_MS));
+    return true;
   };
 
   const toggleSuspectedAgent = (patientId: string, drugName: string) => {
@@ -109,11 +116,15 @@ export function usePatientState() {
     );
 
     if (hasUploadedData) {
-      setWithTTL(PATIENT_DB_KEY, {
+      const writeOk = setWithTTL(PATIENT_DB_KEY, {
         patients: updatedPatients,
         databaseDate,
         hasUploadedData,
       });
+      if (!writeOk) {
+        console.warn('Unable to persist the suspected-agent change locally.');
+        return;
+      }
       setPatientDbSavedAt(getSavedAt(PATIENT_DB_KEY, ACTIVE_REPORT_TTL_MS));
     }
   };

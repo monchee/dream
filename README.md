@@ -12,7 +12,7 @@ A private clinical Progressive Web App for the Royal Prince Alfred Hospital Depa
 
 ## Project Status
 
-- **Current version:** v0.80.0
+- **Current version:** v0.91.0
 - **Live app:** [dream.yuson.au](https://dream.yuson.au)
 - **Repository:** private/internal clinical tooling
 - **Production host:** Cloudflare Pages
@@ -80,19 +80,20 @@ The screen lock is a shoulder-surfing control only. It is not a substitute for d
 
 3. **Start the development server**
    ```bash
-   npm run dev
+   npm run dev -- --port 3002
    ```
 
 4. **Open the app**
    ```text
-   http://localhost:3000
+   http://localhost:3002
    ```
 
-If port 3000 is already in use, Vite may choose the next available port. Check the terminal output before testing browser flows.
+Port 3002 is required on this machine: ports 3000 and 3001 are occupied by other services. Pass it explicitly (`npm run dev -- --port 3002`) so Vite cannot fall back to a different port.
 
 ## Common Commands
 
-- `npm run dev` — start the Vite dev server
+- `npm run dev -- --port 3002` — start the Vite dev server
+- `npm run check:release` — verify the current version has a changelog entry (also enforced by CI and `prebuild`)
 - `npx tsc --noEmit` — type-check the app
 - `npm run lint` — run ESLint
 - `npm run test:unit` — run unit/component tests

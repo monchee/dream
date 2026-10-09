@@ -1,5 +1,24 @@
 [
   {
+    "version": "v0.92.0",
+    "codename": "Proof, Not Promises",
+    "date": "6 October 2026",
+    "summary": "The reliability-and-privacy plan from the whole-project assessment (plan 004). The headline fix: clinical saves are now honest. Browser storage writes are confirmed by read-back, and every save path \u2014 draft autosave, manual persistence, final report submission, patient imports, testing-plan drafts \u2014 reports success only after the write actually landed. A failed write (full quota, private browsing, corruption) keeps the clinician's work in memory, shows a visible non-blocking warning, never deletes a draft, and never navigates away under the appearance of success. Around that core: a browser failure-mode test suite, two-tab divergence protection, dark-mode contrast verification, inferred-severity labeling, a clinician-review gate for protocol changes, and documentation brought current.",
+    "highlight": false,
+    "changes": [
+      "Truthful storage writes. `setWithTTL` confirms every write by reading it back and returns success/failure without throwing. Callers can no longer claim a save that did not happen.",
+      "A visible, non-blocking storage warning. \"Unable to save locally \u2014 keep this window open\" appears on failed draft saves; a failed final report save explains that the testing draft is kept. Warnings are generic, PHI-free, semantic-token styled, and announced to assistive technology.",
+      "Cross-tab draft protection. If another tab confirms a newer draft after this tab's last write, this tab refuses to silently overwrite it and warns (\"Another tab changed this draft. Reload before continuing.\"). No auto-merge \u2014 the clinician decides.",
+      "A failure-mode browser test suite (`e2e/reliability-failures.spec.ts`): quota and private-mode failures during draft saves, failed final report writes keeping the draft, two-tab divergence, and dirty Back/Forward through the real browser history APIs.",
+      "Dark-mode contrast verification. A new e2e check computes real WCAG AA contrast ratios from rendered styles on key clinical surfaces in dark theme (axe cannot resolve CSS variable tokens, so contrast is computed directly).",
+      "A clinician-review gate for protocol changes. Protocol sync now writes `docs/protocol-review/latest-diff.md` \u2014 a human-readable diff (SPT/IDT concentrations, dilutions, preparations, challenge steps, pharmacy flags) marked PENDING CLINICIAN REVIEW with a sign-off block \u2014 and a `--review-only` mode that never touches clinical data files. Workflow documented in `docs/protocol-review/README.md`.",
+      "Failed saves keep everything. A failed final report write leaves the testing draft intact, keeps the form mounted, and never navigates. The navigation guard stays open when a draft cannot be persisted before leaving.",
+      "Dashboard severity honesty. When session-log severity is inferred from outcome and intervention (rather than clinician-recorded), the severity distribution says so \u2014 on screen and in its accessible name. Recorded REDCap grades are never relabeled.",
+      "Documentation matches reality. README shows the current version; README/CONTRIBUTING/MAINTAINERS agree on port 3002 for local development (with a `DREAM_DEV_PORT` override for Playwright), and privacy wording reflects the v0.91.0 research removal.",
+      "Clinical data contracts unchanged. Storage keys, TTL duration, envelope schemas, validation thresholds, protocol values and ordering, dilution values, tryptase meaning, and PIN behavior are untouched. No new dependencies, cloud services, or service-worker changes. Existing tests were strengthened, never weakened."
+    ]
+  },
+  {
     "version": "v0.91.0",
     "codename": "Less To Protect",
     "date": "6 October 2026",

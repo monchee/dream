@@ -12,7 +12,7 @@ export interface NavigateOptions {
 
 export interface UseAppNavigationOptions {
   isDirty?: boolean;
-  persistDraftNow?: () => void;
+  persistDraftNow?: () => boolean | void;
 }
 
 export interface AppNavigation {
@@ -133,10 +133,14 @@ export function useAppNavigation(options: UseAppNavigationOptions = {}): AppNavi
     if (pendingNavigation !== null) {
       const target = pendingNavigation;
       const pendingPop = pendingPopStateRef.current;
+      // Persist the draft before leaving; an explicit false means the local
+      // write failed — keep the clinician here with the guard still open.
+      const persisted = persistDraftNowRef.current?.();
+      if (persisted === false) {
+        return;
+      }
       pendingPopStateRef.current = null;
       setPendingNavigation(null);
-
-      persistDraftNowRef.current?.();
 
       if (pendingPop && pendingPop.originalDelta !== 0) {
         isBypassingPopStateGuardRef.current = true;

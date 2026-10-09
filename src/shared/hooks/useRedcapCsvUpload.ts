@@ -4,7 +4,7 @@ import { decodeCsvBytes, parseRedcapCSV } from '@shared/utils';
 import { toast } from 'sonner';
 
 export interface UseRedcapCsvUploadOptions {
-  onParsed?: (patients: Patient[], lastModified?: number) => void;
+  onParsed?: (patients: Patient[], lastModified?: number) => boolean | void;
   onComplete?: () => void;
 }
 
@@ -30,7 +30,14 @@ export function useRedcapCsvUpload(
         const result = parseRedcapCSV(text);
 
         if (result.success) {
-          onParsed?.(result.data, file.lastModified);
+          const persisted = onParsed?.(result.data, file.lastModified);
+          if (persisted === false) {
+            toast.error('Imported, but not saved', {
+              description: 'Browser storage refused the write. The records are available until you leave this page.',
+              duration: 8000,
+            });
+            return;
+          }
           toast.success('Database updated', {
             description: `Imported ${result.data.length} record(s).${
               result.details ? ` ${result.details.join(' ')}` : ''

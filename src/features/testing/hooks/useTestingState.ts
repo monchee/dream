@@ -62,6 +62,9 @@ export function useTestingState() {
   const [activeReportSavedAt, setActiveReportSavedAt] = useState<number | null>(null);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<number | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  // Set when a clinical storage write fails (quota, private mode, corruption).
+  // Generic, PHI-free message only — never the exception text.
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const [testingPlanData, setTestingPlanData] = useState<TestingPlanData | null>(null);
   const [recentLogs, setRecentLogs] = useState<LogFormData[]>([]);
 
@@ -141,6 +144,24 @@ export function useTestingState() {
   // Listen for storage changes, window focus, visibility changes, or interval checks to purge stale in-memory state
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
+      // Another tab wrote a newer draft while this tab holds unconfirmed
+      // edits: warn visibly. Never auto-merge or overwrite — the clinician
+      // decides by reloading or continuing in this tab.
+      if (e.key === TESTING_DRAFT_KEY && e.newValue) {
+        try {
+          const incoming = JSON.parse(e.newValue) as { savedAt?: number };
+          if (
+            typeof incoming.savedAt === 'number'
+            && incoming.savedAt > (lastDraftSavedAtRef.current ?? 0)
+            && isTestingSessionDirty(formDataRef.current)
+            && isDraftEqual(lastSavedDraftRef.current, formDataRef.current) === false
+          ) {
+            setStorageWarning('Another tab changed this draft. Reload before continuing.');
+          }
+        } catch {
+          // malformed external payload — expiry check below still runs
+        }
+      }
       if (e.key === ACTIVE_REPORT_KEY || e.key === TESTING_DRAFT_KEY || e.key === null) {
         checkExpiry();
       }
@@ -216,6 +237,20 @@ export function useTestingState() {
         setWorkContext(currentContext);
       }
 
+      // Cross-tab guard: if another tab confirmed a newer draft after ours,
+      // refuse to silently overwrite it. Warn and keep local edits in memory.
+      const externalSavedAt = getSavedAt(TESTING_DRAFT_KEY, ACTIVE_REPORT_TTL_MS);
+      if (
+        externalSavedAt !== null
+        && lastSavedDraftRef.current !== null
+        && externalSavedAt > (lastDraftSavedAtRef.current ?? 0)
+      ) {
+        setStorageWarning('Another tab changed this draft. Reload before continuing.');
+        setIsSavingDraft(false);
+        draftTimer.current = null;
+        return;
+      }
+
       const draftEnvelope: TestingDraftEnvelope = {
         schemaVersion: 1,
         workContext: currentContext,
@@ -223,9 +258,15 @@ export function useTestingState() {
         savedAt: Date.now(),
       };
 
-      setWithTTL(TESTING_DRAFT_KEY, draftEnvelope);
-      lastSavedDraftRef.current = formData;
-      setLastDraftSavedAt(draftEnvelope.savedAt);
+      const writeOk = setWithTTL(TESTING_DRAFT_KEY, draftEnvelope);
+      if (writeOk) {
+        lastSavedDraftRef.current = formData;
+        setLastDraftSavedAt(draftEnvelope.savedAt);
+        setStorageWarning(null);
+      } else {
+        // Keep the last confirmed timestamp/draft; surface a visible warning.
+        setStorageWarning('Unable to save locally — keep this window open');
+      }
       setIsSavingDraft(false);
       draftTimer.current = null;
     }, 500);
@@ -234,7 +275,7 @@ export function useTestingState() {
     };
   }, [formData]);
 
-  const persistDraftNow = useCallback(() => {
+  const persistDraftNow = useCallback((): boolean => {
     if (draftTimer.current) {
       clearTimeout(draftTimer.current);
       draftTimer.current = null;
@@ -277,12 +318,20 @@ export function useTestingState() {
         savedAt: Date.now(),
       };
 
-      setWithTTL(TESTING_DRAFT_KEY, draftEnvelope);
+      const writeOk = setWithTTL(TESTING_DRAFT_KEY, draftEnvelope);
+      if (!writeOk) {
+        setStorageWarning('Unable to save locally — keep this window open');
+        setIsSavingDraft(false);
+        return false;
+      }
       lastSavedDraftRef.current = current;
       const now = Date.now();
       setLastDraftSavedAt(now);
+      setStorageWarning(null);
       setIsSavingDraft(false);
+      return true;
     }
+    return true;
   }, []);
 
   useEffect(() => {
@@ -293,7 +342,7 @@ export function useTestingState() {
     });
   }, []);
 
-  const handleSubmit = (explicitContext?: ClinicalWorkContext | null) => {
+  const handleSubmit = (explicitContext?: ClinicalWorkContext | null): LogFormData | null => {
     try {
       const finalRecord = parseLogFormData(formData);
       const savedAt = Date.now();
@@ -331,13 +380,21 @@ export function useTestingState() {
         savedAt,
       };
 
+      // Write the report to storage FIRST. Only a confirmed write may mutate
+      // in-memory report state, clear the draft, or report success.
+      const writeOk = setWithTTL(ACTIVE_REPORT_KEY, activeEnvelope);
+      if (!writeOk) {
+        setStorageWarning('Unable to save this record locally — your testing draft is kept. Free up browser storage or use a regular (non-private) window, then save again.');
+        return null;
+      }
+
       setLastSavedRecord(finalRecord);
       setActiveReportContext(finalContext);
       setActiveReportSavedAt(savedAt);
       setRecentLogs(prev => [finalRecord, ...prev]);
-      setWithTTL(ACTIVE_REPORT_KEY, activeEnvelope);
+      setStorageWarning(null);
 
-      // Session is now committed to a report — drop the in-progress draft.
+      // Session is now committed to a confirmed report — drop the in-progress draft.
       lastSavedDraftRef.current = null;
       setLastDraftSavedAt(null);
       setIsSavingDraft(false);
@@ -398,6 +455,8 @@ export function useTestingState() {
     resetForm,
     clearActiveReport,
     persistDraftNow,
+    storageWarning,
+    clearStorageWarning: () => setStorageWarning(null),
     INITIAL_FORM_STATE,
   };
 }

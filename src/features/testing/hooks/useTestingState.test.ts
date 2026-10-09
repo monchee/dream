@@ -266,7 +266,7 @@ describe('useTestingState', () => {
       expect(result.current.formData.mrn).toBe('123456');
     });
 
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -343,7 +343,7 @@ describe('useTestingState', () => {
       expect(result.current.formData.testPanel[0].drugName).toBe('Legacy row');
     });
 
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -390,7 +390,7 @@ describe('useTestingState', () => {
       expect(result.current.formData.nurseNotes?.duringTesting).toBe('During');
     });
 
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -643,7 +643,7 @@ describe('useTestingState', () => {
     expect(result.current.workContext?.testingVisitDate).toBe('2026-07-05');
 
     // Submit preserves the exact session context
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -651,5 +651,143 @@ describe('useTestingState', () => {
     expect(result.current.activeReportContext?.sessionId).toBe(sessionId1);
     expect(result.current.activeReportContext?.testingVisitDate).toBe('2026-07-05');
     expect(saved?.visitDate).toBe('2026-07-05');
+  });
+
+  describe('storage failure handling (plan 004 M1/M2)', () => {
+    function useFailingStorage(): void {
+      const fake = {
+        length: 0,
+        clear: vi.fn(),
+        getItem: vi.fn(() => null),
+        key: vi.fn(() => null),
+        removeItem: vi.fn(),
+        setItem: vi.fn(() => {
+          throw new DOMException('Full', 'QuotaExceededError');
+        }),
+      } as unknown as Storage;
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        get: () => fake,
+      });
+    }
+
+    function useOriginalStorage(): void {
+      const iframe = document.createElement('iframe');
+      document.body.appendChild(iframe);
+      const real = iframe.contentWindow?.localStorage;
+      iframe.remove();
+      if (real) {
+        Object.defineProperty(window, 'localStorage', {
+          configurable: true,
+          get: () => real,
+        });
+      }
+    }
+
+    afterEach(() => {
+      useOriginalStorage();
+      localStorage.clear();
+    });
+
+    it('keeps the previous confirmed timestamp when an autosave write fails', async () => {
+      vi.useFakeTimers();
+      const initialTime = new Date(2026, 5, 10, 14, 5);
+      vi.setSystemTime(initialTime);
+      const { result } = renderHook(() => useTestingState());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        result.current.setFormData({ ...result.current.formData, controls: { ...result.current.formData.controls, histamineSpt: '5' } });
+      });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      const confirmedAt = result.current.lastDraftSavedAt;
+      expect(confirmedAt).not.toBeNull();
+
+      useFailingStorage();
+      act(() => {
+        result.current.setFormData({ ...result.current.formData, controls: { ...result.current.formData.controls, histamineSpt: '7' } });
+      });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      expect(result.current.lastDraftSavedAt).toBe(confirmedAt);
+      expect(result.current.storageWarning).toBe('Unable to save locally — keep this window open');
+      expect(result.current.isSavingDraft).toBe(false);
+      vi.useRealTimers();
+    });
+
+    it('returns false from manual persistence when the write fails', () => {
+      useFailingStorage();
+      const { result } = renderHook(() => useTestingState());
+
+      act(() => {
+        result.current.setFormData({ ...result.current.formData, controls: { ...result.current.formData.controls, histamineSpt: '5' } });
+      });
+
+      let persisted: boolean | undefined;
+      act(() => {
+        persisted = result.current.persistDraftNow();
+      });
+      expect(persisted).toBe(false);
+      expect(result.current.lastDraftSavedAt).toBeNull();
+      expect(result.current.storageWarning).not.toBeNull();
+    });
+
+    it('does not create the active report or clear the draft when the final save write fails', () => {
+      useFailingStorage();
+      const { result } = renderHook(() => useTestingState());
+
+      act(() => {
+        result.current.setFormData({
+          ...result.current.formData,
+          mrn: 'MRN1',
+          firstName: 'Test',
+          lastName: 'Case',
+        });
+      });
+
+      let saved: LogFormData | null | undefined;
+      act(() => {
+        saved = result.current.handleSubmit();
+      });
+
+      expect(saved).toBeNull();
+      expect(result.current.lastSavedRecord).toBeNull();
+      expect(result.current.activeReportSavedAt).toBeNull();
+      expect(result.current.storageWarning).toContain('Unable to save this record locally');
+    });
+
+    it('clears the draft only after a confirmed final report write', () => {
+      const { result } = renderHook(() => useTestingState());
+
+      act(() => {
+        result.current.setFormData({
+          ...result.current.formData,
+          mrn: 'MRN2',
+          firstName: 'Write',
+          lastName: 'Succeeds',
+          controls: { ...result.current.formData.controls, histamineSpt: '4' },
+        });
+      });
+      act(() => {
+        result.current.persistDraftNow();
+      });
+      expect(localStorage.getItem(TESTING_DRAFT_KEY)).not.toBeNull();
+
+      let saved: LogFormData | null | undefined;
+      act(() => {
+        saved = result.current.handleSubmit();
+      });
+
+      expect(saved).not.toBeNull();
+      expect(result.current.lastSavedRecord).not.toBeNull();
+      expect(localStorage.getItem(TESTING_DRAFT_KEY)).toBeNull();
+      expect(result.current.storageWarning).toBeNull();
+    });
   });
 });

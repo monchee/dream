@@ -68,9 +68,10 @@ interface TestingScreenProps {
   setFormData: React.Dispatch<React.SetStateAction<LogFormData>>;
   lastDraftSavedAt: number | null;
   isSavingDraft: boolean;
+  storageWarning?: string | null;
   isDirty?: boolean;
   onBack: () => void;
-  onSubmit: () => LogFormData;
+  onSubmit: () => LogFormData | null;
 }
 
 export function TestingScreen({
@@ -81,6 +82,7 @@ export function TestingScreen({
   setFormData,
   lastDraftSavedAt,
   isSavingDraft,
+  storageWarning = null,
   isDirty = false,
   onBack,
   onSubmit,
@@ -118,11 +120,15 @@ export function TestingScreen({
         />
       )}
 
-      <div className="flex min-h-4 justify-end px-1">
+      <div className="flex min-h-4 flex-col items-end gap-0.5 px-1">
+        {storageWarning && (
+          <p className="text-xs font-semibold text-status-warning" role="status">{storageWarning}</p>
+        )}
         <DraftSaveIndicator
           isSaving={isSavingDraft}
           isDirty={isDirty}
           lastSavedAt={lastDraftSavedAt}
+          saveFailed={Boolean(storageWarning)}
         />
       </div>
 

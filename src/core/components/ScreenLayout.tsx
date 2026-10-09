@@ -31,7 +31,7 @@ export interface ScreenChrome {
   showDisclaimer?: boolean;
   isCustomData?: boolean;
   onDismissDisclaimer?: () => void;
-  onUploadPatients?: (patients: Patient[], fileLastModified?: number) => void;
+  onUploadPatients?: (patients: Patient[], fileLastModified?: number) => boolean | void;
   onUploadComplete?: () => void;
   csvUploadSheetOpen?: boolean;
   onCSVUploadSheetOpenChange?: ((open: boolean) => void) | React.Dispatch<React.SetStateAction<boolean>>;

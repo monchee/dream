@@ -169,7 +169,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
     if (draftPatientId !== patient.id) return;
 
     const drafts = getIfFresh<TestingPlanBuilderDrafts>(TESTING_PLAN_BUILDER_DRAFTS_KEY) ?? {};
-    setWithTTL<TestingPlanBuilderDrafts>(TESTING_PLAN_BUILDER_DRAFTS_KEY, {
+    const writeOk = setWithTTL<TestingPlanBuilderDrafts>(TESTING_PLAN_BUILDER_DRAFTS_KEY, {
       ...drafts,
       [patient.id]: {
         selectedDrugs,
@@ -181,7 +181,9 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
         documentsToChase,
       },
     });
-    setLastDraftSavedAt(Date.now());
+    if (writeOk) {
+      setLastDraftSavedAt(Date.now());
+    }
   }, [customDrugs, documentsToChase, draftPatientId, notes, patient.id, reactionDate, selectedDrugs, selectedProtocols, urgent]);
 
   const toggleDoc = (key: 'tryptases' | 'anaestheticChart' | 'other') => {

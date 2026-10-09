@@ -194,6 +194,55 @@ export function printDoseDiff(diffs) {
   console.log('================================================================================\n');
 }
 
+/**
+ * Plan 004 M3: render the dose-level diff as a human-readable Markdown
+ * review artifact for clinician sign-off. No patient data is involved —
+ * protocol content only.
+ */
+export function formatDoseDiffReport(diffs, { sourceDescription, incomingSchemaVersion, generatedAt }) {
+  const lines = [];
+  lines.push('# Protocol Sync — Clinical Review');
+  lines.push('');
+  lines.push(`- Source: ${sourceDescription}`);
+  lines.push(`- Incoming schema version: ${incomingSchemaVersion}`);
+  lines.push(`- Generated: ${generatedAt}`);
+  lines.push(`- Status: ${diffs.length === 0 ? 'NO CHANGES' : 'PENDING CLINICIAN REVIEW'}`);
+  lines.push('');
+
+  if (diffs.length === 0) {
+    lines.push('No dose changes detected between the existing snapshot and the incoming data.');
+    lines.push('');
+  } else {
+    for (const diff of diffs) {
+      lines.push(`## ${diff.drug} (${diff.type})`);
+      lines.push('');
+      for (const detail of diff.details) {
+        lines.push(`- ${detail}`);
+      }
+      lines.push('');
+    }
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('Clinical sign-off:');
+  lines.push('- Decision: PENDING');
+  lines.push('- Reviewer:');
+  lines.push('- Role:');
+  lines.push('- Reviewed:');
+  lines.push('- Scope/notes:');
+  lines.push('');
+  return lines.join('\n');
+}
+
+export function writeProtocolDiffReport(report, {
+  outputPath = join(ROOT, 'docs', 'protocol-review', 'latest-diff.md'),
+} = {}) {
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, report, 'utf8');
+  console.log(`Protocol review report written: ${outputPath}`);
+}
+
 export async function fetchSnapshot(sourceUrl) {
   const response = await fetch(sourceUrl);
   if (!response.ok) {
@@ -205,6 +254,7 @@ export async function fetchSnapshot(sourceUrl) {
 export function parseArgs(argv) {
   let fromPath = null;
   let fromUrl = null;
+  let reviewOnly = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -218,10 +268,12 @@ export function parseArgs(argv) {
       i++;
     } else if (arg.startsWith('--from-url=')) {
       fromUrl = arg.slice('--from-url='.length);
+    } else if (arg === '--review-only') {
+      reviewOnly = true;
     }
   }
 
-  return { fromPath, fromUrl };
+  return { fromPath, fromUrl, reviewOnly };
 }
 
 export async function syncProtocols(options = {}) {
@@ -259,6 +311,23 @@ export async function syncProtocols(options = {}) {
 
   const diffs = computeDoseLevelDiff(oldSnapshot, newSnapshotRaw);
   printDoseDiff(diffs);
+
+  // Write the clinician review artifact BEFORE any snapshot/masterlist change.
+  // If report generation fails, no clinical data files are modified.
+  const report = formatDoseDiffReport(diffs, {
+    sourceDescription,
+    incomingSchemaVersion: newSnapshotRaw.schema_version,
+    generatedAt: new Date().toISOString(),
+  });
+  writeProtocolDiffReport(report);
+  if (diffs.length > 0) {
+    console.log('A clinician must review docs/protocol-review/latest-diff.md before protocol changes are accepted.');
+  }
+
+  if (options.reviewOnly) {
+    console.log('--review-only: snapshot and generated masterlist left unchanged.');
+    return;
+  }
 
   // Write new snapshot
   const formattedJson = JSON.stringify(newSnapshotRaw, null, 2) + '\n';

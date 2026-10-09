@@ -19,9 +19,9 @@ npm ci
 
 ### Development Server
 ```bash
-npm run dev
+npm run dev -- --port 3002
 ```
-Starts the Vite dev server at `http://localhost:3000`.
+Starts the Vite dev server at `http://localhost:3002` (ports 3000/3001 are occupied on this machine; CI e2e uses its own preview port 4173 and is unaffected).
 
 ### Validation & Code Quality
 - **Type check**: `npx tsc --noEmit`

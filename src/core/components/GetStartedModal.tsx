@@ -33,7 +33,7 @@ type GetStartedStep = 'choose' | 'import';
 export interface GetStartedModalProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onUploadPatients?: (patients: Patient[], fileLastModified?: number) => void;
+  onUploadPatients?: (patients: Patient[], fileLastModified?: number) => boolean | void;
   onUploadComplete?: () => void;
   setScreen?: (screen: Screen) => void;
   onStartDirectTesting?: () => void;
@@ -97,9 +97,15 @@ export const GetStartedModal: React.FC<GetStartedModalProps> = ({
 
   const { isUploading, handleFileChange } = useRedcapCsvUpload({
     onParsed: (patients, lastModified) => {
+      const persisted = onUploadPatients?.(patients, lastModified);
       markSeen();
+      if (persisted === false) {
+        // Keep the import surface open with the in-memory data; the hook's
+        // toast explains the storage failure.
+        setStep('choose');
+        return;
+      }
       setStep('choose');
-      onUploadPatients?.(patients, lastModified);
       setOpen(false);
     },
     onComplete: () => {

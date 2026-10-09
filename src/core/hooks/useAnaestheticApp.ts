@@ -6,7 +6,7 @@ import { isTestingSessionDirty } from '@features/testing/utils/isTestingSessionD
 import { isDifferentPatient, getPatientIdentitySignature } from '@features/patients/utils/patientIdentity';
 import { useAppNavigation } from './useAppNavigation';
 import { useDisclaimer } from '@shared/hooks/useDisclaimer';
-import { Patient, Screen } from '@shared/types';
+import { LogFormData, Patient, Screen } from '@shared/types';
 import { createClinicalWorkContext } from '@shared/types/clinicalWorkContext';
 
 export function useAnaestheticApp() {
@@ -173,8 +173,13 @@ export function useAnaestheticApp() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (): LogFormData | null => {
     const savedRecord = originalHandleSubmit(workContext);
+    if (!savedRecord) {
+      // Storage write failed; the testing hook has shown the storage warning
+      // and kept the draft. Stay put — no success toast, no navigation.
+      return null;
+    }
     toast.success(`Record saved for ${savedRecord.lastName}, ${savedRecord.firstName}`, { duration: 4000 });
     navigation.navigate(Screen.SUMMARY, { bypassGuard: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -238,6 +243,7 @@ export function useAnaestheticApp() {
     activeReportSavedAt: testingState.activeReportSavedAt,
     lastDraftSavedAt: testingState.lastDraftSavedAt,
     isSavingDraft: testingState.isSavingDraft,
+    storageWarning: testingState.storageWarning,
     testingPlanData: testingState.testingPlanData,
     setTestingPlanData: testingState.setTestingPlanData,
     recentLogs: testingState.recentLogs,

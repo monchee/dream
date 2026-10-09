@@ -6,6 +6,8 @@ interface DraftSaveIndicatorProps {
   hasChanges?: boolean;
   lastSavedAt?: number | null;
   showNoDraft?: boolean;
+  /** A failed local write takes precedence over every other state. */
+  saveFailed?: boolean;
   className?: string;
 }
 
@@ -15,18 +17,21 @@ export function DraftSaveIndicator({
   hasChanges = false,
   lastSavedAt = null,
   showNoDraft = false,
+  saveFailed = false,
   className,
 }: DraftSaveIndicatorProps) {
   const dirty = isDirty || hasChanges;
-  const status = isSaving
-    ? 'Saving…'
-    : lastSavedAt
-      ? `Draft saved · ${formatTime(lastSavedAt)}`
-      : dirty
-        ? 'Unsaved changes'
-        : showNoDraft
-          ? 'No draft'
-          : '';
+  const status = saveFailed
+    ? 'Unable to save locally — keep this window open'
+    : isSaving
+      ? 'Saving…'
+      : lastSavedAt
+        ? `Draft saved · ${formatTime(lastSavedAt)}`
+        : dirty
+          ? 'Unsaved changes'
+          : showNoDraft
+            ? 'No draft'
+            : '';
 
   if (!status) return null;
 
@@ -36,9 +41,10 @@ export function DraftSaveIndicator({
       aria-atomic="true"
       className={cn(
         'text-xs font-medium tabular-nums transition-colors',
+        saveFailed && 'text-status-warning font-semibold',
         isSaving && 'text-muted-foreground animate-pulse',
-        !isSaving && !lastSavedAt && dirty && 'text-status-warning font-semibold',
-        !isSaving && (lastSavedAt || !dirty) && 'text-muted-foreground',
+        !saveFailed && !isSaving && !lastSavedAt && dirty && 'text-status-warning font-semibold',
+        !saveFailed && !isSaving && (lastSavedAt || !dirty) && 'text-muted-foreground',
         className,
       )}
     >
