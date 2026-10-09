@@ -256,6 +256,9 @@ test.describe('Accessibility Tests', () => {
     await page.getByRole('button', { name: /2\.\s*SPT and IDT/i }).click();
     const histamine = page.getByLabel(/Histamine \(SPT\)/i).first();
     await histamine.fill('6'); // >= 3mm triggers the +POS danger state
+    // Wait for the observable +POS state before scanning — on slower machines
+    // a scan that races the render can miss the badge entirely.
+    await expect(page.getByText('+POS').first()).toBeVisible({ timeout: 15_000 });
 
     const results = await page.evaluate(() => {
       type RGBA = [number, number, number, number];

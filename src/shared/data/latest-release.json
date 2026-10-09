@@ -1,5 +1,9 @@
 [
   {
+    "version": "v0.92.1",
+    "codename": "Review Hardening"
+  },
+  {
     "version": "v0.92.0",
     "codename": "Proof, Not Promises"
   },
@@ -14,9 +18,5 @@
   {
     "version": "v0.90.0",
     "codename": "A Safer, Quieter Workbench"
-  },
-  {
-    "version": "v0.80.0",
-    "codename": "One Coherent Workbench"
   }
 ]
