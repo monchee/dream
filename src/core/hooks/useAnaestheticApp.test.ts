@@ -44,7 +44,7 @@ describe('useAnaestheticApp tryptase prefill', () => {
       handleManualDetailChange: vi.fn(),
       handleUploadPatients: vi.fn(),
       toggleSuspectedAgent: vi.fn(),
-    } as ReturnType<typeof usePatientState>));
+    } as unknown as ReturnType<typeof usePatientState>));
 
     vi.mocked(useTestingState).mockImplementation(() => ({
       formData,
@@ -76,6 +76,8 @@ describe('useAnaestheticApp tryptase prefill', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as ReturnType<typeof useTestingState>));
 
     vi.mocked(useAppNavigation).mockReturnValue({
@@ -273,6 +275,8 @@ describe('useAnaestheticApp direct testing session', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     vi.mocked(useAppNavigation).mockReturnValue({
@@ -332,6 +336,8 @@ describe('useAnaestheticApp handleSubmit', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     vi.mocked(useAppNavigation).mockReturnValue({
@@ -410,6 +416,8 @@ describe('useAnaestheticApp patient switch guard', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     const { result } = renderHook(() => useAnaestheticApp());
@@ -484,6 +492,8 @@ describe('useAnaestheticApp patient switch guard', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     vi.mocked(useAppNavigation).mockReturnValue({
@@ -575,6 +585,8 @@ describe('useAnaestheticApp patient switch guard', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     const { result } = renderHook(() => useAnaestheticApp());
@@ -641,6 +653,8 @@ describe('useAnaestheticApp patient switch guard', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     const { result } = renderHook(() => useAnaestheticApp());
@@ -700,6 +714,8 @@ describe('useAnaestheticApp patient switch guard', () => {
       clearActiveReport: vi.fn(),
       persistDraftNow: vi.fn(),
       INITIAL_FORM_STATE: createMockLogFormData(),
+      storageWarning: null,
+      clearStorageWarning: vi.fn(),
     } as unknown as ReturnType<typeof useTestingState>);
 
     const { result } = renderHook(() => useAnaestheticApp());

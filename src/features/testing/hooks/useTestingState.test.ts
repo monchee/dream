@@ -266,7 +266,7 @@ describe('useTestingState', () => {
       expect(result.current.formData.mrn).toBe('123456');
     });
 
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -343,7 +343,7 @@ describe('useTestingState', () => {
       expect(result.current.formData.testPanel[0].drugName).toBe('Legacy row');
     });
 
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -390,7 +390,7 @@ describe('useTestingState', () => {
       expect(result.current.formData.nurseNotes?.duringTesting).toBe('During');
     });
 
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
@@ -643,7 +643,7 @@ describe('useTestingState', () => {
     expect(result.current.workContext?.testingVisitDate).toBe('2026-07-05');
 
     // Submit preserves the exact session context
-    let saved: LogFormData | undefined;
+    let saved: LogFormData | null | undefined;
     act(() => {
       saved = result.current.handleSubmit();
     });
