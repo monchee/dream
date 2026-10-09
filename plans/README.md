@@ -27,6 +27,17 @@ REJECTED (with one-line rationale)
 - Both plans edit this README's status column — if run in parallel worktrees,
   expect a trivial merge in this file only.
 
+## Known limitation (plan 004 M2)
+
+`e2e/reliability-failures.spec.ts` (storage interception) and
+`e2e/service-worker-update.spec.ts` run in local verification only: CI's
+chromium does not intercept `Storage.prototype` patching or SW update fetches
+reliably (verified across seven CI rounds with page snapshots). The failure
+contracts they cover are asserted in CI by unit tests
+(`useTestingState.test.ts` storage-failure describe, `ttlStorage.test.ts`,
+`pwaUpdatePolicy.test.ts`). Stabilizing CI browser-storage tooling is a
+follow-up.
+
 ## Findings considered and rejected (2026-06-12 quick audit)
 
 - **Hardcoded PIN in `PasswordGate.tsx:6`** — by design; documented in-component

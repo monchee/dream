@@ -123,6 +123,8 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [draftPatientId, setDraftPatientId] = useState(patient.id);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<number | null>(null);
+  // Set when the builder draft write fails; surfaced via DraftSaveIndicator.
+  const [draftSaveFailed, setDraftSaveFailed] = useState(false);
   const previousHistoryDrugs = useRef({ patientId: patient.id, drugs: historyDrugs });
   const today = useMemo(getTodayDate, []);
   const allKnownDrugs = useMemo(
@@ -183,6 +185,9 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
     });
     if (writeOk) {
       setLastDraftSavedAt(Date.now());
+      setDraftSaveFailed(false);
+    } else {
+      setDraftSaveFailed(true);
     }
   }, [customDrugs, documentsToChase, draftPatientId, notes, patient.id, reactionDate, selectedDrugs, selectedProtocols, urgent]);
 
@@ -394,7 +399,7 @@ const TestingPlanGenerator: React.FC<TestingPlanGeneratorProps> = ({ patient, dr
                      <p className="text-xs text-muted-foreground font-medium">
                       Select drugs to generate a printable testing plan
                     </p>
-                    <DraftSaveIndicator lastSavedAt={lastDraftSavedAt} className="mt-1 block" />
+                    <DraftSaveIndicator lastSavedAt={lastDraftSavedAt} saveFailed={draftSaveFailed} className="mt-1 block" />
                 </div>
              </div>
              <div className="flex items-center gap-3">

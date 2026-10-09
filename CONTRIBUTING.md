@@ -48,7 +48,7 @@ For user-visible changes:
 1. Bump `package.json`.
 2. Update `CHANGELOG.md` with `Summary:`.
 3. Run `npm run changelog:sync`.
-4. Run the expected checks.
+4. Run the expected checks (including `npm run check:release`).
 5. Commit with a release-focused message.
 6. Tag and push the release.
 7. Create the GitHub release.

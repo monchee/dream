@@ -311,6 +311,19 @@ export function useTestingState() {
         setWorkContext(currentContext);
       }
 
+      // Same cross-tab contract as autosave: never overwrite a newer
+      // external draft during a manual persistence (e.g. navigation).
+      const externalSavedAt = getSavedAt(TESTING_DRAFT_KEY, ACTIVE_REPORT_TTL_MS);
+      if (
+        externalSavedAt !== null
+        && lastSavedDraftRef.current !== null
+        && externalSavedAt > (lastDraftSavedAtRef.current ?? 0)
+      ) {
+        setStorageWarning('Another tab changed this draft. Reload before continuing.');
+        setIsSavingDraft(false);
+        return false;
+      }
+
       const draftEnvelope: TestingDraftEnvelope = {
         schemaVersion: 1,
         workContext: currentContext,
@@ -412,6 +425,7 @@ export function useTestingState() {
       clearTimeout(draftTimer.current);
       draftTimer.current = null;
     }
+    setStorageWarning(null);
     lastSavedDraftRef.current = null;
     setFormData(INITIAL_FORM_STATE);
     setWorkContext(null);
@@ -425,6 +439,7 @@ export function useTestingState() {
       clearTimeout(draftTimer.current);
       draftTimer.current = null;
     }
+    setStorageWarning(null);
     lastSavedDraftRef.current = null;
     setLastSavedRecord(null);
     setActiveReportContext(null);

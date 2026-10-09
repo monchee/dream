@@ -5,7 +5,8 @@
 // Run manually with `npm run protocols:sync`.
 // Do NOT put in prebuild or any automatic hook.
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { generateDrugMasterlist } from './generate-drug-masterlist.mjs';
@@ -199,17 +200,62 @@ export function printDoseDiff(diffs) {
  * review artifact for clinician sign-off. No patient data is involved —
  * protocol content only.
  */
-export function formatDoseDiffReport(diffs, { sourceDescription, incomingSchemaVersion, generatedAt }) {
+/**
+ * Stable fingerprint of a dose-level diff, used to tie a clinical sign-off
+ * to exactly the changes being accepted.
+ */
+export function diffFingerprint(diffs) {
+  return createHash('sha256').update(JSON.stringify(diffs)).digest('hex').slice(0, 16);
+}
+
+/**
+ * Plan 004 M3 review gate: a pending diff may only be accepted when the
+ * EXISTING review artifact carries the same diff fingerprint and a completed
+ * clinical sign-off (non-PENDING decision, named reviewer, review date).
+ * Returns { ok, reason }.
+ */
+export function hasClinicalSignOff(existingReport, fingerprint) {
+  if (!existingReport) {
+    return { ok: false, reason: 'No protocol review report exists yet. Re-run without --accept to generate one, obtain clinical sign-off, then retry.' };
+  }
+  if (!existingReport.includes(`Diff fingerprint: ${fingerprint}`)) {
+    return { ok: false, reason: 'The existing review report is for different changes. Re-run without --accept to refresh it, obtain clinical sign-off, then retry.' };
+  }
+  const decision = existingReport.match(/- Decision: (.+)/)?.[1]?.trim();
+  const reviewer = existingReport.match(/- Reviewer: (.+)/)?.[1]?.trim();
+  const reviewed = existingReport.match(/- Reviewed: (.+)/)?.[1]?.trim();
+  if (!decision || decision.toUpperCase() === 'PENDING' || !reviewer || !reviewed) {
+    return { ok: false, reason: 'docs/protocol-review/latest-diff.md has no completed clinical sign-off (Decision must not be PENDING; Reviewer and Reviewed must be filled). Obtain clinical sign-off, then retry with --accept.' };
+  }
+  if (decision.toUpperCase() === 'REJECTED') {
+    return { ok: false, reason: 'The clinical decision for these changes is REJECTED. Rejected changes must not be accepted into protocol data.' };
+  }
+  if (!/^(ACCEPTED|APPROVED|ACCEPT)/i.test(decision)) {
+    return { ok: false, reason: `The clinical decision "${decision}" is not an affirmative acceptance (expected ACCEPTED/APPROVED). Update the Decision line in docs/protocol-review/latest-diff.md.` };
+  }
+  return { ok: true };
+}
+
+export function formatDoseDiffReport(diffs, {
+  sourceDescription,
+  incomingSchemaVersion,
+  generatedAt,
+  statusOverride = null,
+  existingSignOff = null,
+}) {
+  const hasDiffs = diffs.length > 0;
+  const status = statusOverride ?? (hasDiffs ? 'PENDING CLINICIAN REVIEW' : 'NO CHANGES');
   const lines = [];
   lines.push('# Protocol Sync — Clinical Review');
   lines.push('');
   lines.push(`- Source: ${sourceDescription}`);
   lines.push(`- Incoming schema version: ${incomingSchemaVersion}`);
   lines.push(`- Generated: ${generatedAt}`);
-  lines.push(`- Status: ${diffs.length === 0 ? 'NO CHANGES' : 'PENDING CLINICIAN REVIEW'}`);
+  lines.push(`- Status: ${status}`);
+  lines.push(`- Diff fingerprint: ${diffFingerprint(diffs)}`);
   lines.push('');
 
-  if (diffs.length === 0) {
+  if (!hasDiffs) {
     lines.push('No dose changes detected between the existing snapshot and the incoming data.');
     lines.push('');
   } else {
@@ -226,6 +272,19 @@ export function formatDoseDiffReport(diffs, { sourceDescription, incomingSchemaV
   lines.push('---');
   lines.push('');
   lines.push('Clinical sign-off:');
+
+  if (status === 'ACCEPTED' && existingSignOff) {
+    // Preserve the complete recorded sign-off verbatim (Decision, Reviewer,
+    // Role, Reviewed, Scope/notes) so the durable artifact keeps the audit
+    // trail that authorized these changes.
+    const signed = existingSignOff.slice(existingSignOff.indexOf('- Decision:')).trim();
+    for (const line of signed.split('\n')) {
+      lines.push(line);
+    }
+    lines.push('');
+    return lines.join('\n');
+  }
+
   lines.push('- Decision: PENDING');
   lines.push('- Reviewer:');
   lines.push('- Role:');
@@ -255,6 +314,7 @@ export function parseArgs(argv) {
   let fromPath = null;
   let fromUrl = null;
   let reviewOnly = false;
+  let accept = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -270,10 +330,12 @@ export function parseArgs(argv) {
       fromUrl = arg.slice('--from-url='.length);
     } else if (arg === '--review-only') {
       reviewOnly = true;
+    } else if (arg === '--accept') {
+      accept = true;
     }
   }
 
-  return { fromPath, fromUrl, reviewOnly };
+  return { fromPath, fromUrl, reviewOnly, accept };
 }
 
 export async function syncProtocols(options = {}) {
@@ -312,21 +374,50 @@ export async function syncProtocols(options = {}) {
   const diffs = computeDoseLevelDiff(oldSnapshot, newSnapshotRaw);
   printDoseDiff(diffs);
 
-  // Write the clinician review artifact BEFORE any snapshot/masterlist change.
-  // If report generation fails, no clinical data files are modified.
-  const report = formatDoseDiffReport(diffs, {
-    sourceDescription,
-    incomingSchemaVersion: newSnapshotRaw.schema_version,
-    generatedAt: new Date().toISOString(),
-  });
-  writeProtocolDiffReport(report);
-  if (diffs.length > 0) {
-    console.log('A clinician must review docs/protocol-review/latest-diff.md before protocol changes are accepted.');
-  }
+  // Read the EXISTING review report BEFORE any overwrite — it may hold the
+  // clinical sign-off that gates acceptance of these changes.
+  const reviewReportPath = join(ROOT, 'docs', 'protocol-review', 'latest-diff.md');
+  const existingReport = existsSync(reviewReportPath)
+    ? readFileSync(reviewReportPath, 'utf8')
+    : null;
+  const fingerprint = diffFingerprint(diffs);
 
+  const writeReport = (statusOverride) => {
+    const report = formatDoseDiffReport(diffs, {
+      sourceDescription,
+      incomingSchemaVersion: newSnapshotRaw.schema_version,
+      generatedAt: new Date().toISOString(),
+      statusOverride,
+      existingSignOff: statusOverride === 'ACCEPTED' ? existingReport : null,
+    });
+    writeProtocolDiffReport(report);
+    return report;
+  };
+
+  // --review-only NEVER writes clinical data files, in any branch.
   if (options.reviewOnly) {
+    writeReport(diffs.length === 0 ? 'NO CHANGES' : 'PENDING CLINICIAN REVIEW');
     console.log('--review-only: snapshot and generated masterlist left unchanged.');
     return;
+  }
+
+  if (diffs.length > 0) {
+    // Review gate (plan 004 M3): dose changes require a completed, AFFIRMATIVE
+    // clinical sign-off in the existing review report. PENDING and REJECTED
+    // decisions both refuse acceptance.
+    const signOff = hasClinicalSignOff(existingReport, fingerprint);
+    if (!signOff.ok) {
+      // Refresh the pending report so the clinician reviews current changes.
+      writeReport('PENDING CLINICIAN REVIEW');
+      console.error(`\nRefusing to update protocol data: ${signOff.reason}`);
+      throw new Error('Clinical sign-off required before protocol changes are accepted. After sign-off is recorded in docs/protocol-review/latest-diff.md, re-run with --accept.');
+    }
+    // Signed: write the ACCEPTED report BEFORE the snapshot write, so the
+    // durable signed artifact is never behind the clinical data.
+    writeReport('ACCEPTED');
+    console.log(`Clinical sign-off verified for diff ${fingerprint}.`);
+  } else {
+    writeReport('NO CHANGES');
   }
 
   // Write new snapshot

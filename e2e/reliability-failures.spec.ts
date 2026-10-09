@@ -65,20 +65,18 @@ async function writeConfirmedDraft(page: Page) {
   throw lastError ?? new Error('Could not establish a confirmed baseline draft');
 }
 
-test.describe('reliability failure modes', () => {
-  // WHY LOCAL-ONLY: these tests depend on browser-storage behavior (prototype
-  // patching, cross-tab storage-event timing) that is reliable in a local
-  // Chromium but not in CI's environment — verified across six CI rounds via
-  // page snapshots (writes succeed despite injected failures; same-millisecond
-  // timestamps defeat cross-tab comparisons). The underlying contracts —
-  // failed writes never claim success, drafts survive failed final saves,
-  // newer external drafts are never silently overwritten — are covered in CI
-  // by the storage-failure unit tests in
-  // src/features/testing/hooks/useTestingState.test.ts (storage failure
-  // handling) and src/shared/utils/ttlStorage.test.ts.
-  test.skip(!!process.env.CI, 'browser-storage behavior differs in CI chromium; contracts covered in CI by unit storage-failure tests; this spec runs fully in local verification');
-
+// WHY LOCAL-ONLY (storage-interception describe): these tests patch
+// Storage.prototype via page scripts, which is reliable in a local Chromium
+// but not in CI's environment — verified across six CI rounds via page
+// snapshots (patched writes still succeed there). The underlying contracts —
+// failed writes never claim success, drafts survive failed final saves — are
+// covered in CI by the storage-failure unit tests in
+// src/features/testing/hooks/useTestingState.test.ts (storage failure
+// handling) and src/shared/utils/ttlStorage.test.ts.
+test.describe('reliability failure modes — storage interception (local only)', () => {
   test('quota failure on later draft saves shows the warning and keeps the confirmed draft', async ({ page }) => {
+    test.skip(!!process.env.CI, 'prototype patching is unreliable in CI chromium; contracts covered in CI by unit storage-failure tests; runs in local verification');
+
     const histamine = await writeConfirmedDraft(page);
     const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
     expect(storedBefore).not.toBeNull();
@@ -100,6 +98,7 @@ test.describe('reliability failure modes', () => {
 
   // See quota-test note: prototype patching is unreliable in CI chromium.
   test('blocked-storage (private-mode style) failure shows the warning and never claims a save', async ({ page }) => {
+    test.skip(!!process.env.CI, 'prototype patching is unreliable in CI chromium; contracts covered in CI by unit storage-failure tests; runs in local verification');
     const histamine = await writeConfirmedDraft(page);
     const storedBefore = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
 
@@ -111,7 +110,10 @@ test.describe('reliability failure modes', () => {
     const storedAfter = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
     expect(storedAfter).toBe(storedBefore);
   });
+});
 
+// CI-safe failure modes: no storage interception required. These run in CI.
+test.describe('reliability failure modes — navigation and cross-tab (CI-safe)', () => {
   test('failed final report write stays on the testing screen and keeps the draft', async ({ page }) => {
     // Build a fully valid record first (proves writes work, and gives the
     // submit path something to persist).
@@ -165,6 +167,9 @@ test.describe('reliability failure modes', () => {
     });
     const histamineB = await enterTestingSection(tabB);
     await expect(histamineB).toHaveValue('5'); // draft restored from Tab A
+    // Guarantee B's write lands at a strictly later timestamp than A's (the
+    // cross-tab guard compares savedAt with >).
+    await tabB.waitForTimeout(50);
     await histamineB.fill('9');
     await expect(tabB.getByText(/^Draft saved/).first()).toBeVisible({ timeout: 15_000 });
 
@@ -177,6 +182,9 @@ test.describe('reliability failure modes', () => {
     // Tab A must warn and must not silently claim or overwrite.
     await expect(tabA.getByText(/Another tab changed this draft/i)).toBeVisible({ timeout: 15_000 });
     await expect(histamineA).toHaveValue('6'); // in-memory edits preserved, no merge
+    // Core contract: the stored draft is still B's newer write (value 9).
+    const stored = await tabA.evaluate(() => localStorage.getItem('dream:testing_draft'));
+    expect(stored).toContain('"9"');
     await context.close();
   });
 
@@ -216,8 +224,12 @@ test.describe('reliability failure modes', () => {
     await page.getByRole('button', { name: /2\.\s*SPT and IDT/i }).click();
     await expect(page.getByLabel(/Histamine \(SPT\)/i).first()).toHaveValue('5', { timeout: 10_000 });
 
-    // Forward is intentionally NOT asserted: the restored draft holds clinical
-    // values, so the app re-engages the leave guard on Forward too — safe by
-    // design. (Verified manually: a guard dialog appears on goForward.)
+    // Real browser Forward: the restored draft holds clinical values, so the
+    // leave guard re-engages — confirm the dialog, then accept leaving.
+    await page.goForward();
+    const forwardDialog = page.getByRole('dialog', { name: /Leave testing session\?/i });
+    await expect(forwardDialog).toBeVisible({ timeout: 10_000 });
+    await forwardDialog.getByRole('button', { name: 'Leave and keep draft' }).click();
+    await expect(page).toHaveURL(/dashboard/, { timeout: 10_000 });
   });
 });

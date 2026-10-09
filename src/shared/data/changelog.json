@@ -1,5 +1,23 @@
 [
   {
+    "version": "v0.92.1",
+    "codename": "Review Hardening",
+    "date": "9 October 2026",
+    "summary": "Fixes all sixteen defects from the GPT review of plan 004. Storage-failure warnings now actually reach the testing screen (an App-level wiring gap), failed patient imports and testing-plan drafts no longer claim success, the cross-tab guard covers manual persistence, the protocol sync enforces its clinical sign-off gate, and documentation/ports are current. No clinical thresholds, schemas, or PIN behavior changed.",
+    "highlight": false,
+    "changes": [
+      "Storage-failure warnings are visible. The warning state existed but was never passed from the app hook to the testing screen; a failed autosave or final save now shows the truthful warning and failure indicator.",
+      "Failed imports no longer claim success. Dashboard imports (new and replacement) and the Get Started flow only show \"Database updated\" after a confirmed write; a failed write shows an error and keeps the in-memory records.",
+      "Testing-plan drafts surface failures. A failed builder-draft write marks the indicator's failure state instead of leaving a stale \"Draft saved\".",
+      "Cross-tab protection covers manual persistence. Navigating away can no longer overwrite a newer draft written by another tab.",
+      "Protocol sync enforces its review gate. With dose changes present, the sync refuses to update protocol data unless the review report carries a matching diff fingerprint and a completed clinical sign-off (Decision not PENDING, named reviewer, review date). `--review-only` generates the report without touching clinical files; `--accept` records acceptance after sign-off. Also fixes a missing import that made every sync crash.",
+      "Service-worker update coverage. New e2e test: while unlocked, an SW update prompts \"A new version is ready\" and never auto-reloads.",
+      "Navigation and cross-tab failure tests run in CI. The failure-mode spec is split: navigation/cross-tab tests are CI-safe; storage-interception tests remain local-only (CI's chromium doesn't intercept prototype patching \u2014 documented in-spec across six verified CI rounds).",
+      "Dark-mode contrast check hardened. Proper alpha handling (an element's real backdrop may be its nearest opaque ancestor), the +POS danger surface is scanned, and the scan waits for the observable +POS state.",
+      "Documentation current. README version matches the release; local port 3002 documented consistently; `DREAM_DEV_PORT` now actually overrides the dev server command; the release guard is documented in CONTRIBUTING and MAINTAINERS."
+    ]
+  },
+  {
     "version": "v0.92.0",
     "codename": "Proof, Not Promises",
     "date": "6 October 2026",

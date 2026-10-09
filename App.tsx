@@ -50,7 +50,7 @@ export function AnaestheticLogApp() {
     formData, setFormData,
     workContext, activeReportContext,
     selectedPatient, lastSavedRecord, activeReportSavedAt,
-    lastDraftSavedAt, isSavingDraft,
+    lastDraftSavedAt, isSavingDraft, storageWarning,
     testingPlanData, setTestingPlanData,
     isPatientDialogOpen, setIsPatientDialogOpen,
     patients, databaseDate, hasUploadedData, patientDbSavedAt, isLoadingPatients, recentLogs,
@@ -231,6 +231,7 @@ export function AnaestheticLogApp() {
           setFormData={setFormData}
           lastDraftSavedAt={lastDraftSavedAt}
           isSavingDraft={isSavingDraft}
+          storageWarning={storageWarning}
           isDirty={isTestingDraftDirty}
           onBack={() => handleNavigate(Screen.LOG)}
           onSubmit={handleSubmit}
