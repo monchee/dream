@@ -94,6 +94,30 @@ describe('sign-off gate and argument parsing (plan 004 review fixes)', () => {
     expect(hasClinicalSignOff(signed, 'abc123').ok).toBe(true);
   });
 
+  it('rejects an explicit REJECTED decision (plan 004 review fix)', () => {
+    const rejected = [
+      '- Diff fingerprint: abc123',
+      '- Decision: REJECTED',
+      '- Reviewer: Dr. Clinical',
+      '- Reviewed: 2026-10-06',
+    ].join('\n');
+    const result = hasClinicalSignOff(rejected, 'abc123');
+    expect(result.ok).toBe(false);
+    expect(result.reason).toContain('REJECTED');
+  });
+
+  it('requires an affirmative decision keyword', () => {
+    const unclear = [
+      '- Diff fingerprint: abc123',
+      '- Decision: maybe',
+      '- Reviewer: Dr. Clinical',
+      '- Reviewed: 2026-10-06',
+    ].join('\n');
+    const result = hasClinicalSignOff(unclear, 'abc123');
+    expect(result.ok).toBe(false);
+    expect(result.reason).toContain('affirmative acceptance');
+  });
+
   it('parses --review-only and --accept flags', () => {
     expect(parseArgs(['--review-only']).reviewOnly).toBe(true);
     expect(parseArgs(['--review-only']).accept).toBe(false);

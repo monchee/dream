@@ -109,7 +109,10 @@ test.describe('reliability failure modes — storage interception (local only)',
     const storedAfter = await page.evaluate(() => localStorage.getItem('dream:testing_draft'));
     expect(storedAfter).toBe(storedBefore);
   });
+});
 
+// CI-safe failure modes: no storage interception required. These run in CI.
+test.describe('reliability failure modes — navigation and cross-tab (CI-safe)', () => {
   test('failed final report write stays on the testing screen and keeps the draft', async ({ page }) => {
     // Build a fully valid record first (proves writes work, and gives the
     // submit path something to persist).
@@ -148,10 +151,7 @@ test.describe('reliability failure modes — storage interception (local only)',
     await expect(page).not.toHaveURL(/summary|report/i);
     await expect(page.getByText(/Unable to save this record locally/i).first()).toBeVisible({ timeout: 15_000 });
   });
-});
 
-// CI-safe failure modes: no storage interception required. These run in CI.
-test.describe('reliability failure modes — navigation and cross-tab (CI-safe)', () => {
   test('two-tab divergence warns the stale dirty tab instead of overwriting', async ({ page }) => {
     // Tab A is the fixture's page (unlock seeding already applied).
     const tabA = page;

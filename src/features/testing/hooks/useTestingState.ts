@@ -425,6 +425,7 @@ export function useTestingState() {
       clearTimeout(draftTimer.current);
       draftTimer.current = null;
     }
+    setStorageWarning(null);
     lastSavedDraftRef.current = null;
     setFormData(INITIAL_FORM_STATE);
     setWorkContext(null);
@@ -438,6 +439,7 @@ export function useTestingState() {
       clearTimeout(draftTimer.current);
       draftTimer.current = null;
     }
+    setStorageWarning(null);
     lastSavedDraftRef.current = null;
     setLastSavedRecord(null);
     setActiveReportContext(null);

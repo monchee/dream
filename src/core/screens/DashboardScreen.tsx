@@ -14,7 +14,7 @@ interface DashboardScreenProps {
   isLoadingPatients: boolean;
   patientDbSavedAt: number | null;
   onSelectPatient: (patient: Patient) => void;
-  onUploadPatients: (newPatients: Patient[], fileLastModified?: number) => void;
+  onUploadPatients: (newPatients: Patient[], fileLastModified?: number) => boolean | void;
 }
 
 export function DashboardScreen({

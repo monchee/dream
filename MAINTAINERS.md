@@ -29,6 +29,7 @@ Starts the Vite dev server at `http://localhost:3002` (ports 3000/3001 are occup
 - **Lint auto-fix**: `npm run lint:fix`
 
 ### Testing
+- **Release guard**: `npm run check:release` (CI enforces it on every PR; `prebuild` runs it before every build)
 - **Unit & component tests (single run)**: `npm run test:unit`
 - **Unit tests (watch mode)**: `npm run test`
 - **Unit tests (UI mode)**: `npm run test:ui`

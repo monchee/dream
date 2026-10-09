@@ -224,8 +224,14 @@ export function hasClinicalSignOff(existingReport, fingerprint) {
   const decision = existingReport.match(/- Decision: (.+)/)?.[1]?.trim();
   const reviewer = existingReport.match(/- Reviewer: (.+)/)?.[1]?.trim();
   const reviewed = existingReport.match(/- Reviewed: (.+)/)?.[1]?.trim();
-  if (!decision || decision === 'PENDING' || !reviewer || !reviewed) {
+  if (!decision || decision.toUpperCase() === 'PENDING' || !reviewer || !reviewed) {
     return { ok: false, reason: 'docs/protocol-review/latest-diff.md has no completed clinical sign-off (Decision must not be PENDING; Reviewer and Reviewed must be filled). Obtain clinical sign-off, then retry with --accept.' };
+  }
+  if (decision.toUpperCase() === 'REJECTED') {
+    return { ok: false, reason: 'The clinical decision for these changes is REJECTED. Rejected changes must not be accepted into protocol data.' };
+  }
+  if (!/^(ACCEPTED|APPROVED|ACCEPT)/i.test(decision)) {
+    return { ok: false, reason: `The clinical decision "${decision}" is not an affirmative acceptance (expected ACCEPTED/APPROVED). Update the Decision line in docs/protocol-review/latest-diff.md.` };
   }
   return { ok: true };
 }
@@ -347,38 +353,56 @@ export async function syncProtocols(options = {}) {
   const diffs = computeDoseLevelDiff(oldSnapshot, newSnapshotRaw);
   printDoseDiff(diffs);
 
-  // Write the clinician review artifact BEFORE any snapshot/masterlist change.
-  // If report generation fails, no clinical data files are modified.
-  const report = formatDoseDiffReport(diffs, {
-    sourceDescription,
-    incomingSchemaVersion: newSnapshotRaw.schema_version,
-    generatedAt: new Date().toISOString(),
-  });
-  writeProtocolDiffReport(report);
+  // Read the EXISTING review report BEFORE any overwrite — it may hold the
+  // clinical sign-off that gates acceptance of these changes.
+  const reviewReportPath = join(ROOT, 'docs', 'protocol-review', 'latest-diff.md');
+  const existingReport = existsSync(reviewReportPath)
+    ? readFileSync(reviewReportPath, 'utf8')
+    : null;
+  const fingerprint = diffFingerprint(diffs);
 
-  if (diffs.length === 0) {
+  if (diffs.length > 0) {
+    // Review gate (plan 004 M3): dose changes require a completed, AFFIRMATIVE
+    // clinical sign-off in the existing review report. PENDING and REJECTED
+    // decisions both refuse acceptance.
     if (options.reviewOnly) {
-      console.log('--review-only: snapshot and generated masterlist left unchanged (no changes to accept).');
+      const report = formatDoseDiffReport(diffs, {
+        sourceDescription,
+        incomingSchemaVersion: newSnapshotRaw.schema_version,
+        generatedAt: new Date().toISOString(),
+      });
+      writeProtocolDiffReport(report);
+      console.log('--review-only: snapshot and generated masterlist left unchanged.');
+      return;
     }
-    // Fall through: with no differences there is nothing to accept.
-  } else {
-    // Review gate (plan 004 M3): dose changes require a completed clinical
-    // sign-off in the existing review report, unless --review-only was
-    // requested (which never modifies clinical data files anyway).
-    const fingerprint = diffFingerprint(diffs);
-    const existingReport = existsSync(join(ROOT, 'docs', 'protocol-review', 'latest-diff.md'))
-      ? readFileSync(join(ROOT, 'docs', 'protocol-review', 'latest-diff.md'), 'utf8')
-      : null;
-    if (!options.reviewOnly && !options.accept) {
+    if (!options.accept) {
       const signOff = hasClinicalSignOff(existingReport, fingerprint);
       if (!signOff.ok) {
+        // Refresh the pending report so the clinician reviews current changes.
+        const report = formatDoseDiffReport(diffs, {
+          sourceDescription,
+          incomingSchemaVersion: newSnapshotRaw.schema_version,
+          generatedAt: new Date().toISOString(),
+        });
+        writeProtocolDiffReport(report);
         console.error(`\nRefusing to update protocol data: ${signOff.reason}`);
         throw new Error('Clinical sign-off required before protocol changes are accepted. After sign-off is recorded in docs/protocol-review/latest-diff.md, re-run with --accept.');
       }
       console.log(`Clinical sign-off verified for diff ${fingerprint}.`);
     } else {
-      console.log('--review-only: snapshot and generated masterlist left unchanged.');
-      return;
+      // --accept: requires the same completed sign-off the plain run checks.
+      const signOff = hasClinicalSignOff(existingReport, fingerprint);
+      if (!signOff.ok) {
+        const report = formatDoseDiffReport(diffs, {
+          sourceDescription,
+          incomingSchemaVersion: newSnapshotRaw.schema_version,
+          generatedAt: new Date().toISOString(),
+        });
+        writeProtocolDiffReport(report);
+        console.error(`\n--accept refused: ${signOff.reason}`);
+        throw new Error('Clinical sign-off required before protocol changes are accepted.');
+      }
+      console.log(`--accept: clinical sign-off verified for diff ${fingerprint}.`);
     }
   }
 
@@ -390,6 +414,20 @@ export async function syncProtocols(options = {}) {
   // Regenerate drugMasterlist.generated.ts
   const { protocolCount } = generateDrugMasterlist(SNAPSHOT_PATH);
   console.log(`Regenerated drugMasterlist.generated.ts with ${protocolCount} protocol records.`);
+
+  // Record the accepted (or no-change) review state AFTER the clinical files
+  // are updated — the previously signed report is never destroyed beforehand.
+  const report = formatDoseDiffReport(diffs, {
+    sourceDescription,
+    incomingSchemaVersion: newSnapshotRaw.schema_version,
+    generatedAt: new Date().toISOString(),
+  });
+  const finalReport = diffs.length > 0 && options.accept && existingReport
+    ? report.replace('- Decision: PENDING', existingReport.match(/- Decision: .+/)?.[0] ?? '- Decision: ACCEPTED')
+        .replace('- Reviewer:', existingReport.match(/- Reviewer: .+/)?.[0] ?? '- Reviewer:')
+        .replace('- Reviewed:', existingReport.match(/- Reviewed: .+/)?.[0] ?? '- Reviewed:')
+    : report;
+  writeProtocolDiffReport(finalReport);
 }
 
 export async function main() {
