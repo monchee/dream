@@ -230,6 +230,7 @@ const Dashboard: React.FC<DashboardProps> = ({ existingPatients, recentLogs, dru
             abandonedRate={abandonedRate}
             animatedAvgTime={animatedAvgTime}
             gradeCounts={analytics.gradeCounts}
+            hasInferredSessionGrades={analytics.hasInferredSessionGrades}
             topAgents={analytics.topAgentsByCount}
             animateCharts={animateCharts}
             reduceMotion={prefersReducedMotion}

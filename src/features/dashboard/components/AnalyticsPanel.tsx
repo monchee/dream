@@ -22,6 +22,8 @@ interface StatsPanelProps {
   topAgents: { name: string; count: number }[];
   animateCharts: boolean;
   reduceMotion?: boolean;
+  /** True when session-log severity is inferred (heuristic), not clinician-recorded. */
+  hasInferredSessionGrades?: boolean;
 }
 
 const AnalyticsPanel: React.FC<StatsPanelProps> = ({
@@ -36,7 +38,8 @@ const AnalyticsPanel: React.FC<StatsPanelProps> = ({
   gradeCounts,
   topAgents,
   animateCharts,
-  reduceMotion = false
+  reduceMotion = false,
+  hasInferredSessionGrades = false,
 }) => {
   const totalPatients = animatedTotalPatients || 1;
   const max = topAgents[0]?.count || 1;
@@ -123,13 +126,18 @@ const AnalyticsPanel: React.FC<StatsPanelProps> = ({
           <CardTitle as="h2" className="text-base flex items-center gap-2 text-foreground">
             <PieChart className="w-4 h-4 text-primary dark:text-primary" /> Severity Distribution
           </CardTitle>
+          {hasInferredSessionGrades && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Session-log grades are inferred from outcome and intervention; imported REDCap grades are as recorded.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="p-4">
           {/* Stacked Bar */}
           <div
             className="flex h-8 w-full rounded-none overflow-hidden mb-4 bg-muted dark:bg-card"
             role="img"
-            aria-label={`Severity distribution: ${severitySummary}`}
+            aria-label={`Severity distribution${hasInferredSessionGrades ? ' (session-log grades inferred from outcome and intervention)' : ''}: ${severitySummary}`}
           >
             {gradeMeta.map(({ key, label, count, className, pattern }, index) => count > 0 && (
               <div

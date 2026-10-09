@@ -190,6 +190,7 @@ export const useDashboardAnalytics = ({
     }
 
     return {
+      hasInferredSessionGrades: sessionLogCount > 0,
       totalPatients,
       redcapRecordCount,
       sessionLogCount,
