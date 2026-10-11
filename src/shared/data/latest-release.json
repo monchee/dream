@@ -1,5 +1,9 @@
 [
   {
+    "version": "v0.93.0",
+    "codename": "Quieter Plan Lane"
+  },
+  {
     "version": "v0.92.1",
     "codename": "Review Hardening"
   },
@@ -14,9 +18,5 @@
   {
     "version": "v0.90.1",
     "codename": "The Release Guard"
-  },
-  {
-    "version": "v0.90.0",
-    "codename": "A Safer, Quieter Workbench"
   }
 ]

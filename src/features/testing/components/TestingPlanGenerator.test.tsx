@@ -202,8 +202,13 @@ describe('TestingPlanGenerator', () => {
     expect(screen.getByRole('button', { name: 'Remove custom drug Sodium citrate flush' })).toBeInTheDocument();
   });
 
+  function expandDoseSpecifications() {
+    fireEvent.click(screen.getByRole('button', { name: /Protocol & Dose Specifications/i }));
+  }
+
   it('renders inline protocol dose tables with exact clinical strings and source links for selected listed drugs', () => {
     renderGenerator();
+    expandDoseSpecifications();
 
     // Chlorhexidine is preselected by default
     const tableSection = screen.getByTestId('selected-protocol-details');
@@ -215,12 +220,13 @@ describe('TestingPlanGenerator', () => {
     expect(within(tableSection).getByText('0.9% sodium chloride')).toBeInTheDocument();
     expect(within(tableSection).getByText('0.1 mL of 0.02 mg/mL + 0.9 mL NS')).toBeInTheDocument();
 
-    const scratchLink = within(tableSection).getByRole('link', { name: /View Chlorhexidine on SCRATCH/i });
+    const scratchLink = within(tableSection).getByRole('link', { name: /View Chlorhexidine protocol/i });
     expect(scratchLink).toHaveAttribute('href', 'https://scratch.yuson.au/drugs/chlorhexidine/');
   });
 
   it('renders under-review badge, reviewNote, and source link when selecting a generated drug under review', () => {
     renderGenerator();
+    expandDoseSpecifications();
 
     fireEvent.click(screen.getByRole('button', { name: 'Pantoprazole' }));
 
@@ -229,7 +235,7 @@ describe('TestingPlanGenerator', () => {
     expect(within(tableSection).getByText(/Under review/i)).toBeInTheDocument();
     expect(within(tableSection).getByText('The Spreadsheet 2 spreadsheet labels the SPT concentration as "Neat (40 mg/mL)". This is a spreadsheet labelling error — the correct reconstituted concentration is 4 mg/mL (40 mg powder + 10 mL NS).')).toBeInTheDocument();
 
-    const scratchLink = within(tableSection).getByRole('link', { name: /View Pantoprazole on SCRATCH/i });
+    const scratchLink = within(tableSection).getByRole('link', { name: /View Pantoprazole protocol/i });
     expect(scratchLink).toHaveAttribute('href', 'https://scratch.yuson.au/drugs/pantoprazole/');
 
     // IDT steps exact strings
@@ -240,6 +246,7 @@ describe('TestingPlanGenerator', () => {
 
   it('updates the active inline dose table when switching protocol choices on a multi-protocol drug', async () => {
     renderGenerator();
+    expandDoseSpecifications();
 
     fireEvent.click(screen.getByRole('button', { name: 'Ketamine' }));
 
@@ -257,7 +264,7 @@ describe('TestingPlanGenerator', () => {
 
     // Ketamine is SCRATCH-sourced since the tranche-1 migration, so its
     // protocol detail links to the handbook page
-    const scratchLink = within(tableSection).getByRole('link', { name: /View Ketamine on SCRATCH/i });
+    const scratchLink = within(tableSection).getByRole('link', { name: /View Ketamine protocol/i });
     expect(scratchLink).toHaveAttribute('href', 'https://scratch.yuson.au/drugs/ketamine/');
   });
 

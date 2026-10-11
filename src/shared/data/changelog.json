@@ -1,5 +1,17 @@
 [
   {
+    "version": "v0.93.0",
+    "codename": "Quieter Plan Lane",
+    "date": "9 October 2026",
+    "summary": "Two testing-plan refinements from clinical feedback. The Protocol & Dose Specifications box is now collapsed by default (it opens automatically when a saved protocol selection needs review, and via its own disclosure toggle), so the plan lane leads with drug selection rather than a wall of dose tables. The protocol source link reads simply \"Protocol\" instead of \"SCRATCH Protocol\". No clinical values, ordering, or validation changed.",
+    "highlight": false,
+    "changes": [
+      "Protocol & Dose Specifications is collapsed by default. The box keeps its drug count in the header, opens via its disclosure toggle, and auto-opens when any selected drug's saved protocol requires review \u2014 that state is never hidden.",
+      "The protocol source link reads \"Protocol\". Same destination (the SCRATCH drug page), same per-drug label, plainer wording.",
+      "Protocol values, ordering, thresholds, and validation are untouched; the review-required auto-open keeps blocking states visible, and the full unit suite (930) plus e2e pass."
+    ]
+  },
+  {
     "version": "v0.92.1",
     "codename": "Review Hardening",
     "date": "9 October 2026",

@@ -1,3 +1,14 @@
+## [0.93.0] — 2026-10-09 (Quieter Plan Lane)
+
+Summary: Two testing-plan refinements from clinical feedback. The Protocol & Dose Specifications box is now collapsed by default (it opens automatically when a saved protocol selection needs review, and via its own disclosure toggle), so the plan lane leads with drug selection rather than a wall of dose tables. The protocol source link reads simply "Protocol" instead of "SCRATCH Protocol". No clinical values, ordering, or validation changed.
+
+### Changed
+- **Protocol & Dose Specifications is collapsed by default.** The box keeps its drug count in the header, opens via its disclosure toggle, and auto-opens when any selected drug's saved protocol requires review — that state is never hidden.
+- **The protocol source link reads "Protocol".** Same destination (the SCRATCH drug page), same per-drug label, plainer wording.
+
+### Checked, no change needed
+- Protocol values, ordering, thresholds, and validation are untouched; the review-required auto-open keeps blocking states visible, and the full unit suite (930) plus e2e pass.
+
 ## [0.92.1] — 2026-10-09 (Review Hardening)
 
 Summary: Fixes all sixteen defects from the GPT review of plan 004. Storage-failure warnings now actually reach the testing screen (an App-level wiring gap), failed patient imports and testing-plan drafts no longer claim success, the cross-tab guard covers manual persistence, the protocol sync enforces its clinical sign-off gate, and documentation/ports are current. No clinical thresholds, schemas, or PIN behavior changed.

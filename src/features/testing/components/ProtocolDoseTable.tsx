@@ -35,9 +35,9 @@ export const ProtocolDoseTable: React.FC<ProtocolDoseTableProps> = ({ protocol, 
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            aria-label={`View ${protocol.drugName} on SCRATCH`}
+            aria-label={`View ${protocol.drugName} protocol`}
           >
-            <span>SCRATCH Protocol</span>
+            <span>Protocol</span>
             <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
           </a>
         ) : null}
