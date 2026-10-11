@@ -1,6 +1,6 @@
 import React from 'react';
 import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ChevronDown } from 'lucide-react';
 import { DrugProtocol } from '@features/testing/types';
 import { resolveSelectedProtocol, type ProtocolResolution } from '@shared/utils/protocolResolver';
 import { ProtocolDoseTable } from './ProtocolDoseTable';
@@ -98,41 +98,66 @@ interface DoseSpecificationsSectionProps {
 export const DoseSpecificationsSection: React.FC<DoseSpecificationsSectionProps> = ({
   selectedListedDrugs,
 }) => {
+  const [open, setOpen] = React.useState(false);
   if (selectedListedDrugs.length === 0) return null;
+
+  // Reference content, collapsed by default so the plan lane stays scannable.
+  // Auto-open when any selected drug's saved protocol needs review — the nurse
+  // must see that state without hunting for it.
+  const hasReviewRequired = selectedListedDrugs.some(
+    ({ resolution }) => resolution.status === 'invalid',
+  );
+  const expanded = open || hasReviewRequired;
+
   return (
-      <div className="col-span-full border border-border bg-muted/20 p-3 space-y-3 rounded-none" data-testid="selected-protocol-details">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between border-b border-dashed border-border pb-1">
-          <h5 className="section-label">Protocol &amp; Dose Specifications</h5>
-          <span className="text-xs text-muted-foreground tabular-nums">
+      <div className="col-span-full border border-border bg-muted/20 rounded-none" data-testid="selected-protocol-details">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={expanded}
+          aria-controls={expanded ? 'dose-specifications-content' : undefined}
+          className="w-full min-h-[44px] flex items-center justify-between gap-3 px-3 py-2 text-left bg-muted/40 hover:bg-muted transition-colors rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        >
+          <span className="section-label">Protocol &amp; Dose Specifications</span>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
             {selectedListedDrugs.length} selected drug{selectedListedDrugs.length === 1 ? '' : 's'}
+            <ChevronDown
+              className={`w-4 h-4 shrink-0 transition-transform duration-150 ${expanded ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
           </span>
-        </div>
-        <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
-          {selectedListedDrugs.map(({ drug, resolution }) => {
-            if (resolution.status === 'valid') {
-              return <ProtocolDoseTable key={drug} protocol={resolution.protocol!} />;
-            }
-            if (resolution.status === 'invalid') {
-              return (
-                <div
-                  key={drug}
-                  role="alert"
-                  aria-live="assertive"
-                  className="border border-status-danger bg-status-danger/10 p-3 rounded-none space-y-1 text-status-danger"
-                  data-testid={`protocol-review-required-${drug}`}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-xs">
-                    <span>⚠ {drug} — Protocol selection requires review</span>
-                  </div>
-                  <p className="text-xs font-normal text-foreground/90 leading-relaxed">
-                    Saved protocol selection index is invalid. Please select a valid protocol option in Protocol Choices below.
-                  </p>
-                </div>
-              );
-            }
-            return null;
-          })}
-        </div>
+        </button>
+
+        {expanded && (
+          <div id="dose-specifications-content" className="p-3 space-y-3 border-t border-dashed border-border">
+            <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
+              {selectedListedDrugs.map(({ drug, resolution }) => {
+                if (resolution.status === 'valid') {
+                  return <ProtocolDoseTable key={drug} protocol={resolution.protocol!} />;
+                }
+                if (resolution.status === 'invalid') {
+                  return (
+                    <div
+                      key={drug}
+                      role="alert"
+                      aria-live="assertive"
+                      className="border border-status-danger bg-status-danger/10 p-3 rounded-none space-y-1 text-status-danger"
+                      data-testid={`protocol-review-required-${drug}`}
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs">
+                        <span>⚠ {drug} — Protocol selection requires review</span>
+                      </div>
+                      <p className="text-xs font-normal text-foreground/90 leading-relaxed">
+                        Saved protocol selection index is invalid. Please select a valid protocol option in Protocol Choices below.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          </div>
+        )}
       </div>
   );
 };

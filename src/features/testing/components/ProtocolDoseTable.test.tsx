@@ -35,7 +35,7 @@ describe('ProtocolDoseTable', () => {
     expect(screen.getByText('0.9% sodium chloride (reconstitute with 10 mL NS)')).toBeInTheDocument();
 
     // Source link
-    const sourceLink = screen.getByRole('link', { name: /View Pantoprazole on SCRATCH|SCRATCH Protocol/i });
+    const sourceLink = screen.getByRole('link', { name: /View Pantoprazole protocol|Protocol/i });
     expect(sourceLink).toHaveAttribute('href', 'https://scratch.yuson.au/drugs/pantoprazole/');
     expect(sourceLink).toHaveAttribute('target', '_blank');
     expect(sourceLink).toHaveAttribute('rel', 'noopener noreferrer');
